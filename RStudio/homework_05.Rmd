@@ -1,0 +1,135 @@
+---
+title: "Homework 5 -- Due April 7"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+Name:  Navya Mittal
+netID:  navya_0215
+Collaborated with:  No one
+
+Your homework **must be submitted in Word or PDF format, created by calling "Knit Word" or "Knit PDF" from RStudio on your R Markdown document.
+Submission in other formats may receive a grade of 0**. Your responses must be supported by both textual explanations and the code you generate to produce your result. Note that all R code used to produce your results must be shown in your knitted file. 
+
+We continue examining the diffusion of tetracycline adoption among doctors in Illinois in the early 1950s, building on our work in Lab 6.  You will need the data sets `ckm_nodes.csv` and `ckm_network.dat`.
+
+1. Clean the data to eliminate doctors for whom we have no adoption-date information, as in Lab 7.  Only use this cleaned data for the rest of the assignment.
+
+```{r}
+data = read.csv("ckm_nodes.csv")
+pos = which(!is.na(data$adoption_date))
+cleaned_nodes = data[pos,]
+
+```
+
+
+2. Create a new data frame which records, for every doctor and every month, whether that doctor began prescribing tetracycline that month (as a boolean variable), whether they had adopted tetracycline strictly before that month (as a boolean variable), the number of their contacts who began prescribing strictly before that month, and the number of their contacts who began prescribing in that month or earlier.  Explain why the data frame should have 6 columns, and 2125 rows.  (Try not to use any loops. But points will *not* be deducted if you use loops.)
+
+Specifically, the data frame should contain the following columns:
+
+a. `doctor`: Doctor ID (the row indices of the original data)
+a. `month`: Month
+a. `begin`: whether that doctor began prescribing tetracycline that month
+a. `before`: whether they had adopted tetracycline before that month
+a. `contacts_before`: the number of their contacts who began prescribing strictly before that month
+a. `contacts_in_or_before`: the number of their contacts who began prescribing in that month or earlier
+
+
+    Display the rows corresponding to the second doctor.
+
+```{r}
+#df <- data.frame(df[,-1], row.names = df[,1])
+data2 <- read.table("ckm_network.dat")
+#data2
+as.numeric(row.names(cleaned_nodes))
+#cleaned_nodes]
+doctor <- rep(as.numeric(rownames(cleaned_nodes)), each=17)
+month <- rep(1:17, 125)
+adopt <- rep(cleaned_nodes$adoption_date, each=17)
+begin <- month == adopt
+before <- month > adopt
+inor <-  month >= adopt
+inor <- adopt <= month
+network = read.table("ckm_network.dat")
+dim(network) #therefore square
+clean_network = network[pos,pos]
+
+numcon <- function(i, x, dat, n_month=17, n_doctor=125){
+  contacts <- matrix(x, nr=n_month, nc=n_doctor)
+  index <- which(dat[i,]==1)
+  if (length(index)>1){
+    return(apply(contacts[,index, drop=F],1,sum))
+  } else {
+    return(rep(0, nrow(contacts)))
+  }
+}
+contacts_before <- as.vector(sapply(1:125, numcon, x=before, dat=clean_network))
+contacts_in_or_before <- as.vector(sapply(1:125, numcon, x= inor, dat=clean_network))
+output <- data.frame(doctor, month, begin, before, contacts_before, contacts_in_or_before)
+output[output$doctor==2,]
+```
+We have 6 columns and 2125 rows as we repeat the experimennt for all 125 doctors for each month which gives us 17*2125 rows and since we have 6 vairables, we end up with 6 columns.
+3.  Let
+    <!--Square brackets are necessary for generating HTML, but break PDF-->
+    <!--\[-->
+    \begin{multline*}
+    p_k = \Pr(\text{Doctor starts prescribing tetracycline this month} \mid \\
+    \text{Doctor did not previously prescribe, and number of doctor's contacts prescribing before this month is $k$})
+    \end{multline*}
+    <!--\]-->
+    
+    **When computing $p_k$ it is important to note that the number of doctors who *could* start prescribing this month does *not* include doctors who have already started prescribing. In order to compute $p_k$ correctly you must be sure that the denominator you use does not include doctors who have already started prescribing. If the denominator is zero you will find $p_k$=NaN. In these cases we can't estimate $p_k$, and you should exclude those values of $k$ from your analysis**
+    
+We suppose the $p_k$ are the same for all months.
+
+a. Explain why there should be no more than $21$ values of $k$ for which we can estimate $p_k$ directly from the data.
+```{r}
+c <- apply(clean_network, MARGIN=2, FUN = sum) #2 for columns
+min(c)
+max(c)
+```
+
+The range of values for k are determined by the minimum and maximum number of contacts in `ckm_network`. We see that the minimum number of contacts is 0 and the maximum is 20, therefore we have 21 values of k. 
+
+Since the probabilities are the same for all months, we can pool the data from individual months together by considering $A=\bigcup_{j=1}^{17} A_j$ where
+
+$$
+A_j=\{\mbox{At month $j$, a doctor did not previously prescribe, and number of doctor's contacts prescribing before this month is $k$}\}
+$$
+which corresponds to a subset of rows in the dataframe created in Q2.
+Note that each row corresponds to an observation of a particular doctor in a specific month.
+
+The estimated $p_k$ is calculated as
+$$
+\frac{\mbox{Number of rows that correspond to a doctor that began prescribing that month and are in $A$}}{\mbox{Number of rows belonging to $A$}}
+$$
+
+b. Create a vector of estimated $p_k$ probabilities, using the data frame from (2).  Plot the probabilities against the number of prior-adoptee contacts $k$. (A number of estimated $p_k$ are NaN, for large $k$.)
+```{r}
+pk_function <- function(i){
+  mean(output$begin[(!output$before) & (output$contacts_before == i)])
+}
+
+# Create vector of estimated p_k probabilities using sapply
+p_k <- sapply(0:20, pk_function)
+
+# Plot probabilities against k
+plot(0:20, p_k, type="b", xlab="Number of prior-adoptee contacts k", ylab="Estimated probability p_k")
+
+```
+
+
+4. Suppose $p_k = a + bk$.  This would mean that each contact who adopts the new drug increases the probability of adoption by an equal amount on average.  Estimate this model by least squares (i.e., linear regression), using the values you constructed in (3c). Report the estimates of $a$ and $b$ (i.e., the slope and intercept of a linear model with predictor $k$ (from part 3a), and response $p_k$.)
+
+```{r}
+df <- data.frame(k = 0:20, p_k = p_k)
+model <- lm(p_k ~ k, data = df)
+summary(model)
+coef(model)
+```
+

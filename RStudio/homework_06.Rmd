@@ -1,0 +1,216 @@
+---
+title: "Homework 6 -- Due April 21"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+
+Name:  Navya Mittal
+netID:  navya_0215
+Collaborated with:  No one
+
+Your homework **must be submitted in Word or PDF format, created by calling "Knit Word" or "Knit PDF" from RStudio on your R Markdown document.
+Submission in other formats may receive a grade of 0**. Your responses must be supported by both textual explanations and the code you generate to produce your result. Note that all R code used to produce your results must be shown in your knitted file. 
+
+In this assignment, you will practice how to register a signal by matching two point clusters as best you can in two dimensions. The first set, `true.signal`, is what we expect to appear in the data; the second, `distorted.signal` is what we observe in the real world. Your mission (and you must accept it) is to transform the signal so that it best matches the original.
+
+## Preparation
+
+1. Read Lab 9 and follow the following preparation steps:
+    a. Load the file `hw-06.RData`, which contains the two matrices: `true.signal` and `distorted.signal`. Note that these matrices both have two columns, which will be referred to as $x$ and $y$ coordinates respectively. Also, load the package `KernSmooth`.
+    
+```{r}
+load("hw-07.RData")
+library("KernSmooth")
+```
+
+    b. Run the following code to define a wrapper function for kernel density estimation:
+    
+        ```
+        mybkde2D <- function(data){
+            return(bkde2D(data, bandwidth=0.5, range.x = list(c(-20,20),c(-20,20)), gridsize=c(201,201)))
+        }
+        ```
+```{r}
+
+mybkde2D <- function(data){
+            return(bkde2D(data, bandwidth=0.5, range.x = list(c(-20,20),c(-20,20)), gridsize=c(201,201)))
+        }
+
+```
+            
+        Use `mybkde2D` to reproduce the `my.2d.kde` and `my.second.2d.kde` in Lab 9.
+        
+```{r}
+my.2d.kde <- mybkde2D(true.signal)
+my.second.2d.kde <- mybkde2D(distorted.signal)
+
+```
+    
+    c. Run the following code to define a wrapper function for the plot in Question 4 of Lab 9:
+       
+       Understand the wrapper function `diff.plot`, and use it to reproduce the plot in Question 4 of Lab 9.
+       
+
+```{r}
+
+max.z.diff <- max(abs(my.2d.kde$fhat - my.second.2d.kde$fhat))
+diff.plot <- function(kde1, kde2){
+    image(kde1$x1, kde1$x2, kde1$fhat - kde2$fhat, zlim=max.z.diff*c(-1,1), col=colorRampPalette(c("red","white","blue"))(21))
+}
+
+diff.plot(my.2d.kde, my.second.2d.kde)
+
+```
+
+
+## Building loss functions
+
+2. Take **the sum of squared differences** between the densities as the loss.  Calculate this for the data (Hint: see Question 4 of Lab 9 for how to calculate **the maximum of absolute differences** between the two densities.) (Your answer should be 0.192947.) Then, using `mybkde2D`, repeat this calculation by adding 1 to every value of the $x$ coordinate of the distorted set before calculating the density. (Consider this a "shift" of 1 to the $x$ coordinate of the data.)
+
+```{r}
+
+sum.z.diff <- sum((my.2d.kde$fhat - my.second.2d.kde$fhat)^2)
+sum.z.diff
+
+distorted.signal_shifted <- cbind(distorted.signal[,1]+1, distorted.signal[,2])
+my.second.2d.kde_shifted <- mybkde2D(distorted.signal_shifted)
+sum((my.2d.kde$fhat - my.second.2d.kde_shifted$fhat)^2)
+
+
+```
+
+
+3. Write a function that takes as its input a single value, the shift to apply to $x$ coordinate, and calculates the sum of squared differences between the (estimated) densities of the shifted distorted set and the `true.signal`. Test 5 values (-4, -3, -2, -1, 0) for the shift on this function. Which gives the best value? (Note that we aim to minimize the loss.)
+
+```{r}
+
+calculate_loss <- function(shift) {
+  distorted.signal_shifted <- cbind(distorted.signal[,1]+shift, distorted.signal[,2])
+  my.second.2d.kde_shifted <- mybkde2D(distorted.signal_shifted)
+  return (sum((my.2d.kde$fhat - my.second.2d.kde_shifted$fhat)^2))
+}
+
+calculate_loss(-4)
+calculate_loss(-3)
+calculate_loss(-2)
+calculate_loss(-1)
+calculate_loss(0)
+
+
+```
+Therefore, -3 gives the minimum loss. 
+
+4. Write a function that takes as its input the shifts to apply to `x` and `y` (a vector of length 2), and calculates the sum of squared differences between the density plots of the shifted distorted set and the `true.signal`. What is output of the function with input (0,0)?
+
+```{r}
+calculate_loss2 <- function(shifts) {
+  distorted.signal_shifted <- cbind(distorted.signal[,1] + shifts[1], distorted.signal[,2] + shifts[2])
+  my.second.2d.kde_shifted <- mybkde2D(distorted.signal_shifted)
+  return (sum((my.2d.kde$fhat - my.second.2d.kde_shifted$fhat)^2))
+}
+
+
+lossval <- calculate_loss2(c(0,0))
+lossval
+
+```
+
+
+5. Now, use `optim` on the function in Question 4 (loss function with respect to two dimensional shift) to find the ideal two dimensiona shift value. You should set the starting value of the algorithm as (0,0). How much does your loss function decrease? Plot the difference between the `true.signal` and the transformed `distorted.signal` data, using `diff.plot`, similarly as Question 1c. (You don't need to change `max.z.diff`.) 
+
+```{r}
+start <- c(0, 0)
+optim_result <- optim(start, calculate_loss2)
+opt_shift <- calculate_loss2(optim_result$par)
+diffloss <- lossval - opt_shift
+diffloss
+
+shift <- optim_result$par
+shift
+#distorted.signal[,1] + shifts[1], distorted.signal[,2] + shifts[2])
+transfromed_distorted_signal <- cbind((distorted.signal[,1] + shift[1]), (distorted.signal[,2] + shift[2]))
+#loss5 <- lossval - opt_shift
+finaltrans <- mybkde2D(transfromed_distorted_signal)
+diff.plot(my.2d.kde , finaltrans)
+```
+
+
+
+## Advanced transforms
+
+The shift of the data is the first part of what we call an affine transformation:
+
+\[ \mathbf{z}_{new} = \mathbf{s} + \mathbf{z}_{old} \mathbf{A} \]
+
+where $\mathbf{A}$ is a 2-by-2 transformation matrix of rotations and stretches; $\mathbf{s}$ is a row vector of length 2, representing the shift; $\mathbf{z}_{old}$ (a row vector of length 2) is a row of `distorted.signal`; $\mathbf{z}_{new}$ (a row vector of length 2) is the transformed version of that row.
+
+6. Write a function that takes as its input a vector of length 6. The first two are the shifts to apply to each coordinate `x` and `y`; the third through sixth are the elements in the $\mathbf{A}$ matrix, and are filling the matrix $\mathbf{A}$ by row (set `byrow=TRUE` for the function `matrix`). This function should output the new data matrix (of same dimensions as `distorted.signal`) after transformation. Verify that this function works correctly by applying the following inputs and plotting them:
+
+    a. `c(-10, -10, 1, 0, 0, 1)` -- a simple translation of 10 units in each direction.
+
+    b. `c(0,0, -1, 0, 0, -1)` -- a rotation of 180 degrees about the origin.
+    
+    
+```{r}
+sixshifts <- function(vec) {
+  shift <- vec[1:2]
+  A <- matrix(vec[3:6], nrow = 2, byrow = TRUE)
+  transformed_data <- matrix(nrow = nrow(distorted.signal), ncol = ncol(distorted.signal))
+  transformed_data = distorted.signal %*% A + shift
+  return(transformed_data)
+}
+
+test1 <- sixshifts(c(-10, -10, 1, 0, 0, 1))
+test1fun <- mybkde2D(test1)
+test2 <- sixshifts(c(0,0, -1, 0, 0, -1))
+test2fun <- mybkde2D(test2)
+
+image(test1fun$x1, test1fun$x2, test1fun$fhat)
+image(test2fun$x1, test2fun$x2, test2fun$fhat)
+
+```
+
+
+7. Use `optim` and the function in Question 6 to find the ideal affine transformation according to these functions. Use the vector `c(0,0,1,0,0,1)` as the starting point. Report the loss achieved by this affine tranformation. Plot the difference between the `true.signal` and the transformed `distorted.signal` data, using `diff.plot`, similarly as Question 1c. (You don't need to change `max.z.diff`.) 
+
+
+```{r}
+start1 <- c(0, 0, 1, 0, 0, 1)
+# Create the general loss function except for this time the input needs to go through the affine transformation function from 6 first before being passed through mybkd2D
+qseven <- function(x) {
+    temp <- sixshifts(x)  #function from question 6 
+    generaldata <- mybkde2D(temp)
+    return(sum((my.2d.kde$fhat - generaldata$fhat)^2))
+}
+    
+question7optim <- optim(start1, qseven)
+val <- question7optim$value
+val
+paroptim <- sixshifts(question7optim$par)
+a <- mybkde2D(paroptim)
+
+diff.plot(my.2d.kde, a)
+
+```
+
+
+8. Replace the first two entries of the starting point by the ideal shift found in Question 5, and re-do Question 7. Which starting point leads to a better transformation?
+
+```{r}
+replaced <- c(shift[1], shift[2], 1, 0, 0, 1)
+q8 <- optim(replaced, qseven)
+parq8 <- q8$par
+q8$value
+
+optimq8 <- sixshifts(parq8)
+b <- mybkde2D(optimq8)
+diff.plot(my.2d.kde, b)
+
+```
+Since loss is smaller its better to start using the ideal shif from question 5. 

@@ -1,0 +1,129 @@
+---
+title: "Homework 3 -- Due March 10"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+Name:  Navya Mittal
+netID:  navya_0215
+Collaborated with:  
+
+Your homework **must be submitted in Word or PDF format, created by calling "Knit Word" or "Knit PDF" from RStudio on your R Markdown document.
+Submission in other formats may receive a grade of 0**. Your responses must be supported by both textual explanations and the code you generate to produce your result. Note that all R code used to produce your results must be shown in your knitted file.
+
+
+We are working with the World Top Incomes Database (wtid-report.csv), and the Pareto distribution, as in the lab 5.  We also continue to practice working with data frames, manipulating data from one format to another, and writing functions to automate repetitive tasks.
+
+We saw in the lab 5 that if the upper tail of the income distribution followed a perfect Pareto distribution, then
+\begin{eqnarray}
+\label{eqn:1percent-vs-0.1-percent}
+\left(\frac{P99}{P99.9}\right)^{-a+1}  & = & 10 \qquad (\star) \\
+\left(\frac{P99.5}{P99.9}\right)^{-a+1} & = & 5\qquad (\star\star)\\
+\left(\frac{P99}{P99.5}\right)^{-a+1} & = & 2 \qquad (\star\star\star)
+\label{eqn:1percent-vs-0.5-percent}
+\end{eqnarray}
+We could estimate the Pareto exponent by solving any one of these equations for $a$; in the lab we used
+\begin{equation}
+a = 1 - \frac{\log{10}}{\log{(P99/P99.9)}} ~,\qquad (*)
+\label{eqn:exponent-from-quantile-ratio}
+\end{equation}
+
+Because of measurement error and sampling noise, we can't find one value of $a$ which will satisfy all three equations $(\star)$--$(\star\star\star)$.  Generally, trying to make all three equations come close to balancing gives a better estimate of $a$ than just solving one of them.  (This is analogous to finding the slope and intercept of a regression line by trying to come close to all the points in a scatterplot, and not just running a line through two of them.)
+
+
+1. We estimate $a$ by minimizing
+\[
+\left(\left(\frac{P99}{P99.9}\right)^{-a+1} - 10\right)^2 + \left(\left(\frac{P99.5}{P99.9}\right)^{-a+1} - 5\right)^2 +  \left(\left(\frac{P99}{P99.5}\right)^{-a+1} - 2\right)^2
+\]
+Write a function, `percentile_ratio_discrepancies`, which takes as inputs `a`, `P99`, `P99.5` and `P99.9`, and returns the value of the expression above.  Check that when `a=2`, `P99=1e6`, `P99.5=2e6` and `P99.9=1e7`, your function returns `0`.
+
+```{r}
+percentile_ratio_discrepancies <- function(a, x, y, z){ #x=P99, y=P99.5 z=P99.9
+  ans = ((x/z)^(-a+1) - 10)^2 + ((y/z)^(-a+1) -5)^2 + ((x/y)^(-a+1) -2)^2
+  return (ans)
+}
+percentile_ratio_discrepancies(2,1e6,2e6,1e7)
+```
+
+
+2. Write a function, `exponent.multi_ratios_est`, which takes as inputs `P99`, `P99.5`, `P99.9`, and estimates `a`.  It should minimize your `percentile_ratio_discrepancies` function.  The starting value for the minimization should come from $(*)$.  Check that when `P99=1e6`, `P99.5=2e6` and `P99.9=1e7`, your function returns an `a` of 2.
+
+_Hint_: Use the built-in nonlinear optimization function `nlm()`; check its documentation to see how to pass additional arguments of `percentile_ratio_discrepancies` to `nlm`. Look at the examples on the help page. You should be passing to `nlm`: f = `percentile_ratio_discrepancies`, p = the value from $(*)$, and `P99`, `P99.5`, `P99.9`. Keep the default arguments beyond that to `nlm`.
+
+```{r}
+?nlm
+exponent.multi_ratios_est <- function(x, y, z){ #x=P99, y=P99.5, z=P99.9
+  #startvar = 1 - log(10)/(log (x/y))
+  a = nlm(f=percentile_ratio_discrepancies, p=(1 - log(10)/(log (x/z))), x,y,z)
+  return (a$estimate)
+}
+
+exponent.multi_ratios_est(x=1e6, y=2e6, z=1e7)
+```
+
+
+3. Write a function which uses  `exponent.multi_ratios_est` to estimate $a$ for the US for every year from 1913 to 2012.  (There are many ways you could do this, including loops.)  Plot the estimates; make sure the labels of the plot are appropriate. 
+
+```{r}
+data = read.csv("wtid-report.csv", header=TRUE)
+
+data_new = data[-c(1,3,4,8)]
+head(data_new)
+
+est = c()
+
+exponent.new <- function(xvec, yvec, zvec){ #x=P99, y=P99.5, z=P99.9
+  output = array(dim=length(xvec))
+  for (i in 1:length(xvec)){
+    output[i] = exponent.multi_ratios_est(xvec[i], yvec[i], zvec[i])
+  
+  }
+  return (output)
+}
+
+?with
+
+k = with(data_new,exponent.new(P99.income.threshold, P99.5.income.threshold, P99.9.income.threshold))
+
+plot(data_new$Year, k , xlab = 'Year', ylab = 'Estimated value of a')
+
+```
+
+
+4. Use $(*)$ to estimate $a$ for the US for every year, as in the lab.  Make a scatter-plot of these estimates against those from problem 3.  If they are identical or completely independent, something is wrong with at least one part of your code.  Otherwise, can you say anything about how the two estimates compare?
+
+```{r}
+
+#a = 1 - \frac{\log{10}}{\log{(P99/P99.9)}} ~,\qquad (*)
+
+a_est = with(data=data_new, (1-log (10)/(log (data_new$P99.income.threshold/data_new$P99.9.income.threshold))))
+
+plot(a_est, k)
+
+```
+The two estimates are linear.
+
+5. Fit a regression with
+
+    * response: estimated `a` in problem 3
+    * two covariates: year and square of year
+    
+The regression should contain an intercept term. Produce a scatter plot in problem 3 again and then overlay it with a line representing the fitted values of the regression.  
+_Hint_: `lm(y ~  x +I(x^2))` will regress $y$ on both $x$ and $x^2$.
+
+```{r}
+?I()
+b = lm(k ~ data_new$Year + I((data_new$Year)^2))
+summary(b)
+plot(data_new$Year, k , xlab = 'Year', ylab = 'Estimated value of a')
+par(new=TRUE)
+lines(data_new$Year, fitted(b))
+?lines
+```
+

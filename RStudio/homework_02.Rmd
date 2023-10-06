@@ -1,0 +1,224 @@
+---
+title: "Homework 2 -- Due February 17"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+Name: Navya Mittal
+netID: navya_0215
+Collaborated with:No one
+
+Your homework **must be submitted in Word or PDF format, created by calling "Knit Word" or "Knit PDF" from RStudio on your R Markdown document. Submission in other formats may receive a grade of 0**. Your responses must be supported by both textual explanations and the code you generate to produce your result. Note that all R code used to produce your results must be shown in your knitted file. You can collaborate with your classmates, but you must identify their names above, and you must submit your own homework as a knitted file.
+
+## Question 1
+
+'airquality' is a dataset recording daily air quality measurements in New York. Write a R program to
+
+(a) show the first 5 rows of this data
+
+```{r}
+data(airquality)  
+head(airquality)
+
+```
+
+(b) count the number of missing values in each column 
+
+```{r}
+sum(is.na(airquality$Ozone))
+sum(is.na(airquality$Solar.R))
+sum(is.na(airquality$Wind))
+sum(is.na(airquality$Temp))
+sum(is.na(airquality$Month))
+sum(is.na(airquality$Day))
+```
+
+(c) use apply function to calculate the maximum for each column (excluding missing values).
+
+```{r}
+
+# ?apply
+# dim(airquality)
+apply(airquality, 2, max, na.rm = TRUE)
+
+```
+
+(d) extract all observations (a subset of dataframe) for the month of May.
+
+```{r}
+may <- subset(airquality, Month == "5")
+may
+
+```
+
+(e) extract all rows (a subset of dataframe ) where 'Ozone' is less than its 1st quartile and 'Month' is not May.
+
+```{r}
+
+ozonenotmay <- subset(airquality, Month!= "5" & Ozone < 25)
+ozonenotmay
+
+```
+
+(f) 'Temp' is in degrees Fahrenheit. Add a new column called 'Celsius' by transforming 'Temp' to be in degrees Celsius. Note: Celsius=(Fahrenheit-32)/1.8.
+
+```{r}
+airquality["Celsius"] = (airquality$Temp -32)/1.8
+airquality
+
+```
+
+(g) Find the mean temp for each month.
+
+```{r}
+for (i in 5:9){
+  print(mean(airquality[(airquality$Month== i), "Temp"]))
+}
+
+```
+The first value is the mean temperature for May, second value is the mean temperature for June and so on. I used the range 5:9 because that's the range of months included in the database.
+## Question 2
+
+The Fibonacci numbers are the sequence of numbers defined by the linear recurrence equation F(n) = F(n-1) + F(n-2) , where F(1) = F(2) = 1 and by convention F(0) = 0. For example, the first 8 Fibonacci numbers are 1, 1, 2, 3, 5, 8, 13, 21.
+
+(a) write your own R function to compute the n-th Fibonnaci number. Use this function to calculate F(n=15);
+
+```{r}
+fib <- function(n) {
+  if (n <= 0) {
+    return(0)
+  }
+  if (n == 1) {
+    return(1)
+  }
+  return (fib(n - 1) + fib(n - 2))
+}
+
+fib(15)
+
+```
+
+(b) Write you own R function to compute a sequence of Fibonacci numbers such that the last element in the sequence is less than K. Use this function and a `while()`/`break` combination to find the sequence F(0),F(1),...,F(n) such that F(n)\<500;
+
+```{r}
+fib_K <- function(K) {
+  fib_seq <- numeric(2)
+  fib_seq[1] <- 0
+  fib_seq[2] <- 1
+  n <- 2
+  while (TRUE) {
+    next_fib <- fib_seq[n - 1] + fib_seq[n]
+    if (next_fib >= K) {
+      break
+    }
+    n <- n + 1
+    fib_seq[n] <- next_fib
+  }
+  return(fib_seq[1:n])
+}
+
+fib_500 <- fib_K(500)
+fib_500
+
+```
+
+## Question 3
+
+In STAT211, you have learned that given a sample of size $n$ from a normal distribution, the CL=95% confidence interval for the mean can be calculated by
+$$\bar{x} \pm z_{(1-CL)/2}*{s/ \sqrt{n}}.$$ Where $z_{(1-CL)/2)}=z(.025)$ is the z multiplier.
+
+(a) help(qnorm) function. Use qnorm(1-.025) to find z(.025).
+
+```{r}
+?qnorm
+qnorm(1-.025)
+
+```
+That is the value of z(0.25).
+
+(b) Create a vector x by generating $n=50$ numbers from N(mean=30,sd=2) distribution. Calculate the confidence interval from this data using the CI formula. Check whether the interval covers the true mean=30 or not.
+
+```{r}
+x <- rnorm(50, mean = 30, sd = 2)
+xmean <- mean(x)
+stdev <- sd(x)
+ci <- 0.95
+alpha <- 1 - ci
+df <- length(x) - 1
+t <- qt(1 - alpha/2, df)
+lower <- xmean - t * stdev / sqrt(length(x))
+upper <- xmean + t * stdev / sqrt(length(x))
+lower
+upper
+if (30 >= lower && 30 <= upper) {
+  print("The true mean of 30 is covered by CI.")
+} else {
+  print("The true mean of 30 is not covered by CI.")
+}
+
+```
+
+(c) Repeat the above experiments for 200 times to obtain 200 such intervals using a `for()` loop. Calculate the percentage of intervals that cover the true mean=30. This is the empirical coverage probability. In theory, it should be very close to your CL.
+
+```{r}
+count = 0
+for(i in 1:200){
+  x <- rnorm(50, mean = 30, sd = 2)
+  xmean <- mean(x)
+  stdev <- sd(x)
+  ci <- 0.95
+  alpha <- 1 - ci
+  df <- length(x) - 1
+  t <- qt(1 - alpha/2, df)
+  lower <- xmean - t * stdev / sqrt(length(x))
+  upper <- xmean + t * stdev / sqrt(length(x))
+  
+  if (30 >= lower && 30 <= upper) {
+    count <- count + 1
+  }
+}
+
+emp <- count / 200
+emp
+```
+
+(d)  Write a function using CL as an input argument, and the percentage calculated from question c as an output. Use this function to create a 5 by 2 matrix with one column showing the theoretical CL and the other showing the empirical coverage probability, for CL=.8, .85, .9, .95,.99.
+
+```{r}
+ci_coverage <- function(ci) {
+  count = 0
+  for (i in 1:200) {
+    x <- rnorm(50, mean = 30, sd = 2)
+    xmean <- mean(x)
+    stdev <- sd(x)
+    alpha <- 1 - ci
+    df <- length(x) - 1
+    t <- qt(1 - alpha/2, df)
+    lower <- xmean - t * stdev / sqrt(length(x))
+    upper <- xmean + t * stdev / sqrt(length(x))
+    
+    if (30 >= lower && 30 <= upper) {
+      count = count + 1
+    }
+  }
+  emp <- count / 200
+  return(emp)
+}
+
+cl_levels <- c(0.8, 0.85, 0.9, 0.95, 0.99)
+results <- matrix(0, nrow = length(cl_levels), ncol = 2)
+colnames(results) <- c("Theoretical CL", "Empirical Coverage Probability")
+for (i in 1:length(cl_levels)) {
+  results[i, 1] <- cl_levels[i]
+  results[i, 2] <- ci_coverage(cl_levels[i])
+}
+results
+
+
+```

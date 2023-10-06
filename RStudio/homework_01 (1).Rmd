@@ -1,0 +1,285 @@
+---
+title: "Homework 1 -- Due February 3"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+```
+
+Name:  Navya Mittal
+netID:  navya_0215
+Collaborated with:  No one
+
+Your homework **must be submitted in Word or PDF format, created by calling "Knit Word" or "Knit PDF" from RStudio on your R Markdown document.
+Submission in other formats may receive a grade of 0**. Your responses must be supported by both textual explanations and the code you generate to produce your result. Note that all R code used to produce your results must be shown in your knitted file.
+
+## 1 Data Manipulation
+
+The data set at "rainfall_60-79.dat" records hourly rainfall at a certain location in Canada, from 1960 to 1979.
+
+a. First, we need to load the data set into R using the function `read.table()`. Use the help function to learn how to use this function `read.table()`. Load the data set into R and make it a data frame called `canada_rain_df`.
+
+```{r}
+canada_rain_df <- read.table("rainfall_60-79-1.dat")
+
+```
+
+b. How many rows and columns does `canada_rain_df` have? (If there are not 4826 rows and 27 columns, something is wrong; check the previous part to see what might have gone wrong.)
+We can see that the canada_rain_df dataset has 4826 rows and 27 columns.
+```{r}
+nrow(canada_rain_df)
+ncol(canada_rain_df)
+```
+
+c. What is the value of (row 21, column 5) in `canada_rain_df`?
+```{r}
+canada_rain_df[21,5]
+```
+
+
+The value is 0.
+
+d. Display the third row of `canada_rain_df` in its entirety.
+
+```{r}
+canada_rain_df[3,]
+```
+
+e. Explain what this command does:
+
+      ```
+      names(canada_rain_df) <- c("year","month","day",seq(0,23))
+      ```  
+      
+
+by running it on your data and examining the object. (You may find the display functions `head()` and `tail()` useful here.) Is it clear now what the last 24 columns represent?
+
+```{r}
+  
+names(canada_rain_df) <- c("year","month","day",seq(0,23))
+
+
+```
+The name command adds names to the columns of the dataset canada_rain_df, where the first column is named year, second month, third day and the 4-27 columns are starting at index 0 and coninuing till 23.
+
+The last 24 columns represent hours
+
+f. Create a new column in the data frame called `daily`, which is the sum of the rightmost 24 columns. With this column, create a histogram of the values in this column. This new column is supposed to contain daily rainfall values. What is wrong with this picture? Check the data to discover the problem.
+
+```{r}
+# canada_rain_df["daily"] = canada_rain_df$`0` + canada_rain_df$`1` + canada_rain_df$`2`  + canada_rain_df$`3`  + canada_rain_df$`4`  + canada_rain_df$`5`  + canada_rain_df$`6`  + canada_rain_df$`7`  + canada_rain_df$`8` + canada_rain_df$`9`  + canada_rain_df$`10`  + canada_rain_df$`11`  + canada_rain_df$`12`  + canada_rain_df$`13`  + canada_rain_df$`14`  + canada_rain_df$`15`  + canada_rain_df$`16`  + canada_rain_df$`17`  + canada_rain_df$`18` + canada_rain_df$`19`+ canada_rain_df$`20` + + canada_rain_df$`21` + canada_rain_df$`22` + canada_rain_df$`23`
+# canada_rain_df
+# ?colMeans
+
+canada_rain_df["daily"] = rowSums(canada_rain_df[,4:27])
+#look at rowSums (x, na.rm = FALSE, dims = 1)
+#?apply function. generic way to apply a function across a specific dim
+```
+
+
+```{r}
+hist(canada_rain_df$daily)
+summary(canada_rain_df)
+?replace
+
+```
+negative values but didn't find any negative values in the table. all missing values were given a default of -999 which is the issue. 
+
+
+g. Remove the column `daily` and modify the data such that the problematic values are replaced by `NA`. (The function `replace` could be useful.) Show results with `head()` and `tail()`.
+
+```{r}
+canada_rain_df[canada_rain_df == -999] <- 'NA'
+canada_rain_df$daily <- NULL
+
+```
+
+
+## 2 Syntax and class-typing.
+
+a. For each line of the following code, either explain why they should be erroneous, or explain what tasks the non-erroneous ones perform.
+
+    ```
+    vector1 <- c(5, 12, 7, 32)
+    max(vector1)
+    sort(vector1)
+    sum(vector1)
+    ```
+    
+```{r}
+
+vector1 <- c(5, 12, 7, 32)
+max(vector1)
+sort(vector1)
+sum(vector1)
+
+```
+c() creates the vector
+max gives the maximum element in the vector.
+sort sorts the vector in ascending order
+sum gives the sum of the vector
+
+b. For each block of the following code, either explain why they should be erroneous, or explain what tasks the non-erroneous ones perform.
+
+    ```
+    vector2 <- c("5",7,12)
+    vector2[2] + vector2[3]
+    ```
+    ```
+    dataframe3 <- data.frame(z1="5",z2=7,z3=12)
+    dataframe3[1,2] + dataframe3[1,3]
+    ```
+    ```
+    list4 <- list(z1="6", z2=42, z3="49", z4=126)
+    list4[[2]]+list4[[4]]
+    list4[2]+list4[4]
+    ```
+    
+```{r}
+vector2 <- c("5",7,12)
+    vector2[2] + vector2[3]
+```
+Vectors in R only accept one data type. Here we see that different data types are given which causes an error. Since the first data-type is string, 7 and 12 are read as strings too.
+
+
+```{r}
+dataframe3 <- data.frame(z1="5",z2=7,z3=12)
+    dataframe3[1,2] + dataframe3[1,3]
+    dataframe3
+```
+This creates a data frame with three columns and one row and the arithmetic operation gives us the sum of 7 and 12.
+
+```{r}
+list4 <- list(z1="6", z2=42, z3="49", z4=126)
+    list4[[2]]+list4[[4]]
+    list4
+    list4[2]+list4[4]
+    
+# listname = list(2,3,4,c(4,5))
+# typeof(listname[[4]])
+#listname[[c(4,1)]] 1st eleement of the object at pos 4 or use listname[[4]][[1]]
+
+  #cmd shift c for commenting a chunk of code. use help ^^^^^^^^^^^^^^^^^^^^
+```
+In this list, z1 and z3 are character strings, while z2 and z4 are numerical values. In R, you cannot perform arithmetic operations on elements of different data types. To resolve the error, you need to convert the character strings to numerical values using the as.numeric() function. The correct code would be: as.numeric(list4[2]) + as.numeric(list4[4])
+
+## 3 Working with functions and operators.
+
+a. The colon operator will create a sequence of integers in order. It is a special case of the function `seq()` which you saw earlier in this assignment. Using the help command `?seq` to learn about the function, produce an expression that will give you the sequence of numbers from 1 to 10000 in increments of 369. Produce another that will give you a sequence between 1 and 10000 that is exactly 50 numbers in length (i.e., the first number is 1 and the last number is 10000; and the differences between a pair of consecutive numbers are the same).
+b. The function `rep()` repeats a vector some number of times. Explain the difference between `rep(1:3, times=3) and rep(1:3, each=3).
+
+```{r}
+?seq
+seq(1,10000, by=369)
+
+seq(1, 10000, length.out=50)
+```
+
+
+## 4 The Binomial distribution.
+
+The binomial distribution $\mathrm{Bin}(m,p)$ is defined by the number of successes in $m$ independent trials, each have probability $p$ of success. Think of flipping a coin $m$ times, where the coin is weighted to have probability $p$ of landing on heads.
+
+The R function `rbinom()` generates random variables with a binomial distribution. E.g., 
+
+```{r, eval=FALSE}
+rbinom(n=20, size=10, prob=0.5)
+```
+
+produces 20 observations from $\mathrm{Bin}(10,0.5)$.
+
+The following generates 300 binomials composed of 15 trials each with varying probability of success: 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, and 0.8, storing the results in vectors called `bin.draws.0.2`, `bin.draws.0.3`, `bin.draws.0.4.`, `bin.draws.0.4.`, `bin.draws.0.6`, `bin.draws.0.7` and  `bin.draws.0.8`. The means ares stored in the vector `bin.draws.means`.
+
+```{r, eval=TRUE}
+set.seed(01202023) #for randomization; do not change
+
+bins.draws.0.2 <- rbinom(300, size = 15, prob = 0.2)
+bins.draws.0.3 <- rbinom(300, size = 15, prob = 0.3)
+bins.draws.0.4 <- rbinom(300, size = 15, prob = 0.4)
+bins.draws.0.5 <- rbinom(300, size = 15, prob = 0.5)
+bins.draws.0.6 <- rbinom(300, size = 15, prob = 0.6)
+bins.draws.0.7 <- rbinom(300, size = 15, prob = 0.7)
+bins.draws.0.8 <- rbinom(300, size = 15, prob = 0.8)
+
+bin.draws.means <- c(
+  mean(bins.draws.0.2),
+  mean(bins.draws.0.3),
+  mean(bins.draws.0.4),
+  mean(bins.draws.0.5),
+  mean(bins.draws.0.6),
+  mean(bins.draws.0.7),
+  mean(bins.draws.0.8)
+)
+```
+
+a. Create a matrix of dimension 300 x 7, called `bin.matrix`, whose columns contain the 7 vectors we've created, in order of the success probabilities of their underlying binomial distributions (0.2 through 0.8). Hint: use `cbind()`. 
+
+```{r}
+bin.matrix <- cbind(bins.draws.0.2, bins.draws.0.3, bins.draws.0.4, bins.draws.0.5, bins.draws.0.6, bins.draws.0.7, bins.draws.0.8)
+
+dim(bin.matrix) #to check if the dimensions of the matrix are correct
+```
+
+
+b.Print the first five rows of `bin.matrix`. Print the element in the 66th row and 5th column. Compute the largest element in first column. Compute the largest element in all but the first column. 
+
+```{r}
+print(bin.matrix[1:5, ])
+
+print(bin.matrix[66,5])
+```
+6 is the element in 66th row and 5th column.
+
+c. Calculate the column means of `bin.matrix` by using just a single function call.
+```{r}
+k = colMeans(bin.matrix)
+str(k)
+
+str(bin.draws.means)
+```
+
+
+d. Compare the means you computed in the last question to those in `bin.draws.means`, in two ways. First, using `==`, and second, using `identical()`. What do the two ways report? Are the results compatible? Explain.
+
+```{r}
+
+  for (j in 1:7){
+     if (bin.draws.means[j]==k[j]){
+       print("The two means are equal")
+       print(j) #column number
+     }
+     else{
+       print("The means are unequal")
+       print(j)
+     }
+      
+  }
+
+identical(k,bin.draws.means)
+?identical
+  
+```
+The means are equal. 
+However, when the identical command is run, it says false because k(column means) and bins.draws.means have different attributes (one has the names attributes and the other doesn't)
+
+e. Take the transpose of `bin.matrix` and then take row means. Are these the same as what you just computed? Should they be?
+```{r}
+bin.trans = t(bin.matrix)
+#bin.trans
+rowMeans(bin.trans)
+```
+
+Yes, they are the same!
+
+
+f. Lastly, let’s look at memory useage. The command object.size(x) returns the number of bytes used to store the object x in your current R session. Convert `bin.matrix` into a list using `as.list()` and save the result as `bin.list`. Find the number of bytes used to store `bin.matrix` and `bin.list`. How many megabytes (MB) is this, for each object? Which object requires more memory, and why do you think this is the case? Remind yourself: why are lists special compared to vectors, and is this property important for the current purpose (storing the binomial draws)?
+
+```{r}
+bin.list <- as.list(bin.matrix)
+object.size(bin.list)
+object.size(bin.matrix)
+```
+
+The object bin.list has 0.134448 megabytes and bin.matrix has 0.009352 megabytes. The list clearly requires more memory because it can have mutiple different types of elements unlike atomic vector. For this case, an atomic vector would work fine since there is only one type.
