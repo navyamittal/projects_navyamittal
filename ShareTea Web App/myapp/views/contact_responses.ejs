@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="theme" rel="stylesheet" type="text/css" href="style.css">
+    <title>Document</title>
+    <style>
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin-left: 150px;
+            margin-top: 30px;
+            display: center;
+        }
+    
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+    
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <!-- <div id="google_translate_element"></div> -->
+ <br>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {pageLanguage: 'en'},
+                'google_translate_element'
+            );
+        }
+    </script>
+ 
+    <script type="text/javascript"
+            src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+    <script src="script.js"></script>
+    <a href="manager"><img src="logo-clearbg.png" class="logo"></a>
+    <div id="header">
+        <div   class="navigation">
+            <nav  >
+                <ul  >
+                    <li id = "header" class="dropdown">
+                        <a id = "header" class="dropdown-btn" href="/reports">Reports</a>
+                        <div id = "header" class="dropdown-content">
+                            <a id = "header" href="sales">Sales Report</a>
+                            <a id = "header" href="excess">Excess Report</a>
+                            <a id = "header" href="restock">Restock Report</a>
+                            <a id = "header" href="popularity">Popularity Report</a>
+                            <a id = "header" href="wst">What Sales Together</a>
+                        </div>
+                    </li>
+                    <li id = "header"><a id = "header" href="managermenu">Menu</a></li>
+                    <li id = "header"><a id = "header" href="inventory">Inventory</a></li>
+                    <li id = "header"><a id = "header" href="contact_responses">Contact Us Responses</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    
+    <img src="accessibilityicon.png" id="accessibility-button" style="position: absolute; top: 10px; left: 10px; cursor: pointer; width: 60px;" alt="Accessibility Options">
+
+    <!-- Accessibility Dropdown -->
+    <div id="accessibility-dropdown">
+        <button id="accessibility-option" onclick="enlargeAllText()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;" >ENLARGE TEXT SIZE</button>
+        <button id="accessibility-option" onclick="reduceSizeAllText()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">REDUCE TEXT SIZE</button>
+        <button id="accessibility-option" onclick="revertToNormal()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">REVERT TO NORMAL</button>
+        <button id="accessibility-option" onclick="changeContrast()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">CHANGE CONTRAST</button>
+        <button id="accessibility-option" onclick="startSpeaking()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">START SPEAKING PAGE</button>
+        <button id="accessibility-option" onclick="pauseResumeSpeaking()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">PAUSE/RESUME SPEAKING</button>
+        <button id="accessibility-option" onclick="stopSpeaking()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">STOP SPEAKING PAGE</button>
+        <button id="accessibility-option" onclick="openWeatherModal()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">GET WEATHER</button>
+        <div id="google_translate_element"></div>
+
+    </div>
+
+
+    <!-- Container div for the contact us responses table and form -->
+    <div id="menuContainer">
+        <table>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Region</th>
+                <th>Subject</th>
+            </tr>
+            <% for (var i in contact_data) {%>
+                <% if (contact_data[i].firstname) { %>
+                    <tr>
+                        <td><%=contact_data[i].firstname%></td>
+                        <td><%=contact_data[i].lastname%></td>
+                        <td><%=contact_data[i].email%></td>
+                        <td><%=contact_data[i].region%></td>
+                        <td><%=contact_data[i].subject%></td>
+                    </tr>
+                <% } %>
+            <% } %>
+        </table>
+
+    </div>
+
+    <script src="functions.js"></script>
+
+    <button class="employeebutton" id="redirectButton">Logout</button>
+    <script type="text/javascript">
+        document.getElementById("redirectButton").onclick = function () {
+            location.href = "logout";
+        };
+    </script>
+    
+</body>
+
+<script>
+    let synth;
+    let speaking = false;
+    let paused = false;
+    let utterance;
+
+    function initializeSynthesis() {
+        synth = window.speechSynthesis;
+
+        document.getElementById('speak-button').addEventListener('click', function () {
+            startSpeaking();
+            document.getElementById('stop-button').removeAttribute('disabled');
+        });
+
+        document.getElementById('stop-button').addEventListener('click', function () {
+            stopSpeaking();
+        });
+
+        // Add event listener for pause/resume button
+        document.getElementById('pause-resume-button').addEventListener('click', function () {
+            pauseResumeSpeaking();
+        });
+    }
+
+    function pauseResumeSpeaking() {
+        if (speaking) {
+            if (paused) {
+                synth.resume();
+                paused = false;
+                console.log("Speech resumed.");
+            } else {
+                synth.pause();
+                paused = true;
+                console.log("Speech paused.");
+            }
+        }
+    }
+
+    function readEntirePage() {
+        const elements = document.body.getElementsByTagName('*');
+        let fullText = '';
+
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            if (element.tagName !== 'SCRIPT' && element.id !== 'dont-read') {
+                fullText += element.innerText + ' ' + ' ' + ' ';
+            }
+        }
+
+        return fullText.trim();
+    }
+
+    function startSpeaking() {
+        const textToSpeak = readEntirePage();
+        if (synth.speaking) {
+            synth.cancel();
+        }
+
+        utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+        // Add a callback to the onstart event
+        utterance.onstart = function () {
+            console.log("Speech started. Currently speaking: " + textToSpeak);
+        };
+
+        synth.speak(utterance);
+        speaking = true;
+
+        utterance.onend = function () {
+            speaking = false;
+            paused = false;
+            document.getElementById('stop-button').setAttribute('disabled', true);
+        };
+    }
+
+    function stopSpeaking() {
+        if (speaking) {
+            synth.cancel();
+        }
+    }
+    
+    function changeContrast() {
+        var bodyElement = document.body;
+        var modal = document.getElementById("weatherModal");
+
+        // Invert colors using the filter property
+        var invertValue = bodyElement.style.filter === 'invert(100%)' ? 'invert(0%)' : 'invert(100%)';
+        bodyElement.style.filter = invertValue;
+
+        // Invert background color
+        var bgColor = bodyElement.style.backgroundColor === 'rgb(0, 0, 0)' ? '#fff' : '#000';
+        bodyElement.style.backgroundColor = bgColor;
+
+        // Invert colors for the modal as well
+        if (modal) {
+            modal.style.filter = invertValue;
+            modal.style.backgroundColor = bgColor;
+        }
+    }
+    document.getElementById('accessibility-button').addEventListener('click', function () {
+        var dropdown = document.getElementById('accessibility-dropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+
+    function openWeatherModal() {
+        document.getElementById("weatherModal").style.display = "block";
+    }
+
+    function closeWeatherModal() {
+        document.getElementById("weatherModal").style.display = "none";
+    }
+
+    function getweather() {
+        var city = document.getElementById("modalSearch").value;
+        var units = document.getElementById("modalUnits").value;
+        var apiKey = "d2dda5a067msh26327237b9ff85dp18f58ejsn0b86f84efa1d";
+        var apiUrl = "https://weatherapi-com.p.rapidapi.com/current.json?q=" + city + "&units=" + units;
+
+        fetch(apiUrl, {
+            method: "GET",
+            headers: {
+                "X-RapidAPI-Host": "weatherapi-com.p.rapidapi.com",
+                "X-RapidAPI-Key": apiKey,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById("weatherInfo").innerHTML = "Error: " + data.error.message;
+            } else {
+                var temp, fl;
+                if (units == "f") {
+                    temp = "temp_f";
+                    fl = "feelslike_f";
+                } else {
+                    temp = "temp_c";
+                    fl = "feelslike_c";
+                }
+                document.getElementById("weatherInfo").innerHTML = "<h1>" + data.current.condition.text + "</h1>Temperature: " + data.current[temp] + "<br>Feels like: " + data.current[fl] + "<br>UV index: " + data.current.uv + "<br>Humidity: " + data.current.humidity + "<br>Cloud cover: " + data.current.cloud;
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }
+
+    // Store original font sizes
+    var originalFontSizes = {};
+
+    // Get original font sizes when the page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            originalFontSizes[element] = window.getComputedStyle(element, null).getPropertyValue('font-size');
+        });
+    });
+
+    function revertToNormal() {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            element.style.fontSize = originalFontSizes[element];
+        });
+    }
+
+    function enlargeAllText() {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            var currentSize = window.getComputedStyle(element, null).getPropertyValue('font-size');
+            var newSize = (parseFloat(currentSize) * 1.2) + 'px'; // Increase font size by 50%
+            element.style.fontSize = newSize;
+        });
+    }
+
+    function reduceSizeAllText() {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            var currentSize = window.getComputedStyle(element, null).getPropertyValue('font-size');
+            var newSize = (parseFloat(currentSize) * 0.833333) + 'px'; // Decrease font size 
+            element.style.fontSize = newSize;
+        });
+    }
+
+    initializeSynthesis();
+</script>
+
+<div id="weatherModal" class="modal">
+<div class="modal-content">
+    <span class="close" onclick="closeWeatherModal()">&times;</span>
+    <h2>Weather Information</h2>
+    <label for="modalSearch">City:</label>
+    <input placeholder="City" id="modalSearch">
+    <select id="modalUnits">
+        <option value="f">Fahrenheit</option>
+        <option value="c">Celsius</option>
+    </select>
+    <button onclick="getweather()">Get Weather!</button>
+    <div id="weatherInfo"></div>
+</div>
+</div>
+</html>

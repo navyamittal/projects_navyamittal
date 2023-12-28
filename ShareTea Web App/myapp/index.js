@@ -1,0 +1,1271 @@
+// example 1
+// const express = require('express');
+// const app = express();
+// const port = 3000;
+
+// app.get('/', (req, res) => {
+//     res.send('Hello World!');
+// });
+
+// app.listen(port, () => {
+//     console.log(`Example app listening at http://localhost:${port}`);
+// });
+
+// example 2
+// const express = require('express');
+// const app = express();
+// const port = 3000;
+
+// app.get('/', (req, res) => {
+//     res.send('Hello World!');
+// });
+
+// app.get('/user', (req, res) => {
+//     res.send('Hi User!');
+// });
+
+// app.listen(port, () => {
+//     console.log(`Example app listening at http://localhost:${port}`);
+// });
+
+// example 3
+// const express = require('express');
+// const app = express();
+// const port = 3000;
+
+// app.set("view engine", "ejs");
+
+// app.get('/', (req, res) => {
+//     const data = {name: 'Mario'};
+//     res.render('index', data);
+// });
+
+// app.get('/user', (req, res) => {
+//     res.send('Hello User!');
+// });
+
+// app.listen(port, () => {
+//     console.log(`Example app listening at http://localhost:${port}`);
+// });
+
+// example 4
+
+/**
+ * Express and environment
+ * @module express
+ */
+
+/**
+ * passport module
+ * @const passport
+ */
+
+
+/**
+ * Express module
+ * @const
+ */
+const express = require('express');
+/**
+ * Pool for database connections
+ */
+const { Pool } = require('pg');
+/**
+ * Environment module
+ */
+const dotenv = require('dotenv').config();
+
+/**
+ * Express session
+ */
+const session = require('express-session');
+/**
+ * Passport
+ */
+const passport = require('passport');
+require('./auth');
+
+/**
+ * Checks if logged in and is Manager
+ */
+function isLoggedIn(req, res, next) {
+    const isManager = req.session.isManager;
+    // const isVerified = false;
+    // console.log(req.user._json.domain);
+    // if (req.user._json.domain == "tamu.edu") {
+    //     isVerified = true;
+    //     console.log("has tamu domain")
+    // }
+    (isManager  || (req.user  && (req.user._json.domain == "tamu.edu"))) ? next() : res.sendStatus(401);
+}
+
+/**
+ * Express app 
+ * @module app
+ * @requires express
+ */
+
+/**
+ * Express application
+ */
+const app = express();
+app.use(express.json());
+// app.use(express.static(path.join(__dirname, 'views')));
+
+
+
+/**
+ * Express app authentication
+ * @module authentication
+ * @requires app
+ */
+
+//for oauth
+app.use(session({secret: 'cats'}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+/**
+ * Express application authenticate with google
+ * @function
+ * @memberof module:authentication
+ * @name googleAuthenticate
+ */
+app.get('/auth/google', 
+    passport.authenticate('google', {scope: ['email', 'profile']})
+)
+
+/**
+ * Express application callback with google
+ * @function
+ * @memberof module:authentication
+ * @name googleCallback
+ */
+app.get('/google/callback',
+    passport.authenticate('google', {
+        successRedirect: '/manager',
+        failureRedirect: '/auth/failure',
+    })
+);
+
+/**
+ * Express application authentication failure
+ * @function
+ * @memberof module:authentication
+ * @name failure
+ */
+app.get('/auth/failure', (req, res) => {
+    res.send("Authorization Failure");
+})
+
+/**
+ * Express application authentication login test
+ * @function
+ * @memberof module:authentication
+ * @name loginTest
+ */
+app.get('/loggedin_test', isLoggedIn, (req, res) => {
+    user_info = req.user || {role: "Manager"};
+    res.render('loggedin_test', user_info);
+});
+
+/**
+ * Express application authentication manager page
+ * @function
+ * @memberof module:authentication
+ * @name managerPage
+ */
+app.get('/manager', isLoggedIn, function(req, res) {
+    console.log("Rendering manager");
+    user_info = req.user || {role: "Manager"};
+    //console.log(user_info);
+    res.render('manager', user_info);
+});
+
+/**
+ * Express application authentication logout
+ * @function
+ * @memberof module:authentication
+ * @name logout
+ */
+app.get('/logout', (req, res) => {
+    //if session exists
+    if (req.session) {
+        req.logout(function(err) {
+            if (err) {
+                // Handle error
+                return res.status(500).send("Error during logout");
+            }
+            req.session.destroy(function(err) {
+                if (err) {
+                    // Handle error
+                    return res.status(500).send("Error destroying session");
+                }
+
+                // redirect to logout page
+                res.render('logout');
+            });
+        });
+    } else {
+        // if no session exists
+        res.render('logout');
+    }
+           
+});
+
+/**
+ * Express application authentication login record
+ * @function
+ * @memberof module:authentication
+ * @name loginRecord
+ */
+app.post('/login', (req, res) => {
+    // console.log('Submitted employee_id:', employee_id);
+    // console.log('Submitted password:', password);
+    // Send an POST request to the server
+    //console.log ("am i here?");
+    //var { employee_id, password } = req.body;
+    var employee_id = req.body.employee_id;
+    var password = req.body.password;
+    
+    console.log('Submitted employee_id index.js:', employee_id);
+    
+    console.log('Submitted password index.js:', password);
+
+    // Perform user authentication based on username and password
+    // For example, check if the user is a manager
+    const sql = 'SELECT manager FROM all_employees WHERE employee_id = $1 AND password = $2;';
+    console.log('SQL Query:', sql);
+    console.log('Parameters:', [employee_id, password]);
+    pool.query(sql, [employee_id, password], (err, result) => {
+        
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        //console.log('Query Result:', result);
+        if (result.rowCount == 1) {
+            // User found, check if they are a manager
+            //console.log('Query Result AGAIN:', result);
+            const isManager = result.rows[0].manager;
+            req.session.isManager = isManager;
+            res.json({ isManager });
+        } else {
+            // User not found or incorrect credentials
+            res.json("unverified"); // Redirect back to the employee login page
+        }
+        console.log(result.rowCount + " record(s) updated");
+    });
+});
+
+// ~ end of oauth stuff
+
+
+
+/**
+ * Express app pages
+ * @module pages
+ * @requires app
+ */
+
+// const port = 3000;
+const port = process.env.PORT || 3001;
+
+// Create pool
+const pool = new Pool({
+    user: process.env.PSQL_USER,
+    host: process.env.PSQL_HOST,
+    database: process.env.PSQL_DATABASE,
+    password: process.env.PSQL_PASSWORD,
+    // address: process.env.PSQL_ADDRESS,
+    port: process.env.PSQL_PORT,
+    ssl: {rejectUnauthorized: false}
+    // ssl: true
+});
+
+// Add process hook to shutdown pool
+process.on('SIGINT', function() {
+    pool.end();
+    console.log('Application successfully shutdown');
+    process.exit(0);
+});
+	 	 	 	
+app.set("view engine", "ejs");
+
+app.use(express.static('public'));
+
+
+
+/**
+ * Home page
+ * @function
+ * @memberof module:pages
+ * @name homePage
+ */
+app.get('/', (req, res) => {
+    const data = {name: 'Mario'};
+    res.render('index', data);
+});
+
+
+// /**
+//  * All users page
+//  * @function
+//  * @memberof module:pages
+//  * @name user_page
+//  */
+// app.get('/user', (req, res) => {
+//     teammembers = []
+//     pool
+//         .query('SELECT * FROM all_employees;')
+//         .then(query_res => {
+//             for (let i = 0; i < query_res.rowCount; i++){
+//                 teammembers.push(query_res.rows[i]);
+//             }
+//             const data = {teammembers: teammembers};
+//             console.log(teammembers);
+//             res.render('user', data);
+//         });
+// });
+
+/**
+ * Gets drink type given name.
+ * @param {string} drinkName - The name of the drink.
+ * @memberof module:pages
+ */
+function getDrinkType(drinkName) {
+    
+    if (drinkName.toLowerCase().includes('ice blended')) {
+        return 'iceblended';
+    }
+    else if (drinkName.toLowerCase().includes('milk tea')) {
+        return 'milktea';
+    }
+    else if (drinkName.toLowerCase().includes('fruit tea')) {
+        return 'fruittea';
+    }
+    else if (drinkName.toLowerCase().includes('brewed tea')) {
+        return 'brewedtea';
+    }
+    else if (drinkName.toLowerCase().includes('fresh milk')) {
+        return 'freshmilk';
+    }
+    else if (drinkName.toLowerCase().includes('mojito')) {
+        return 'mojito';
+    }
+    else if (drinkName.toLowerCase().includes('creama')) {
+        return 'creama';
+    }
+    else if (drinkName.toLowerCase().includes('seasonal')) {
+        return 'seasonal';
+    }
+    else {
+        return 'other';
+    }
+}
+
+/**
+ * Menu page
+ * @function
+ * @memberof module:pages
+ * @name menuPage
+ */
+app.get('/menu', (req, res) => {
+    current_order = ["hello", "howdy"];
+    drinks = [];
+    customizations = [];
+    drink_type = [];
+    var type = {};
+    type.milktea = "Milk Tea";
+    type.brewedtea = "Brewed Tea";
+    type.fruittea = "Fruit Tea";
+    type.iceblended = "Ice Blended";
+    type.freshmilk = "Fresh Milk Tea";
+    type.creama = "Creama";
+    type.mojito = "Mojito";
+    type.seasonal = "Seasonal Tea";
+
+    // Query drink_dictionary
+    pool.query('SELECT * FROM drink_dictionary ORDER BY drink_id ASC;')
+        .then(drinkQueryRes => {
+            for (let i = 0; i < drinkQueryRes.rowCount; i++) {
+                drinks.push(drinkQueryRes.rows[i]);
+            }
+
+            // Query customizations
+            return pool.query('SELECT * FROM customizations;');
+        })
+        .then(customizationQueryRes => {
+            for (let i = 0; i < customizationQueryRes.rowCount; i++) {
+                customizations.push(customizationQueryRes.rows[i]);
+            }
+            for (let i = 0; i < drinks.length; i++) {
+                drink_type.push(getDrinkType(drinks[i].name));
+            }
+
+            const data = { drinks: drinks, customizations: customizations, drink_type : drink_type, type : type};
+            console.log(data);
+            res.render('menu', data);
+        })
+        .catch(error => {
+            console.error('Error executing query', error);
+            res.status(500).send('Internal Server Error');
+        });
+});
+
+/**
+ * Express app manager
+ * @module manager
+ * @requires app
+ */
+/**
+ * Express app manager pages
+ * @module manager/pages
+ * @requires app
+ */
+
+/**
+ * Reports page
+ * @function
+ * @memberof module:manager/pages
+ * @name reportsPage
+ */
+app.get('/reports', isLoggedIn, (req, res) => {
+    //drinks = []
+    pool
+            res.render('reports');
+        
+});
+
+app.get('/cashiermenu', (req, res) => {
+    current_order = ["hello", "howdy"];
+    drinks = [];
+    customizations = [];
+    drink_type = [];
+    var type = {};
+    type.milktea = "Milk Tea";
+    type.brewedtea = "Brewed Tea";
+    type.fruittea = "Fruit Tea";
+    type.iceblended = "Ice Blended";
+    type.freshmilk = "Fresh Milk Tea";
+    type.creama = "Creama";
+    type.mojito = "Mojito";
+    type.seasonal = "Seasonal Tea";
+
+    // Query drink_dictionary
+    pool.query('SELECT * FROM drink_dictionary ORDER BY drink_id ASC;')
+        .then(drinkQueryRes => {
+            for (let i = 0; i < drinkQueryRes.rowCount; i++) {
+                drinks.push(drinkQueryRes.rows[i]);
+            }
+
+            // Query customizations
+            return pool.query('SELECT * FROM customizations;');
+        })
+        .then(customizationQueryRes => {
+            for (let i = 0; i < customizationQueryRes.rowCount; i++) {
+                customizations.push(customizationQueryRes.rows[i]);
+            }
+            for (let i = 0; i < drinks.length; i++) {
+                drink_type.push(getDrinkType(drinks[i].name));
+            }
+
+            const data = { drinks: drinks, customizations: customizations, drink_type : drink_type, type : type};
+            console.log(data);
+            res.render('cashiermenu', data);
+        })
+        .catch(error => {
+            console.error('Error executing query', error);
+            res.status(500).send('Internal Server Error');
+        });
+});
+
+/**
+ * Manager menu page
+ * @function
+ * @memberof module:manager/pages
+ * @name managerMenu
+ */
+app.get('/managermenu', isLoggedIn, (req, res) => {
+    drinks = []
+    pool
+        .query('SELECT * FROM drink_dictionary ORDER BY drink_id asc;')
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                drinks.push(query_res.rows[i]);
+            }
+            const data = {drinks: drinks};
+            //console.log(drinks);
+            res.render('managermenu', data);
+        });
+});
+
+/**
+ * Contact page
+ * @function
+ * @memberof module:pages
+ * @name contactPage
+ */
+app.get('/contact', (req, res) => {
+    res.render('contact');
+});
+
+/**
+ * Order page
+ * @function
+ * @memberof module:pages
+ * @name orderPage
+ */
+app.get('/order', (req, res) => {
+    current_order = ["hello", "howdy"]
+    drinks = []
+    max_item = [];
+    max_val = '';
+    pool
+        // .query('SELECT * FROM drink_dictionary ORDER BY drink_id asc;')
+        // .then(query_res => {
+        //     for (let i = 0; i < query_res.rowCount; i++){
+        //         drinks.push(query_res.rows[i]);
+        //     }
+        //     // const data = {drinks: drinks};
+        //     // console.log(drinks);
+        //     // res.render('order', data);
+
+        //     // Query customizations
+        //     return pool.query('SELECT MAX(order_id) FROM order_history;');
+        // })
+        .query('SELECT MAX(order_id) FROM order_history;')
+        .then(max_order_id_res => {
+            for (let i = 0; i < max_order_id_res.rowCount; i++) {
+                max_item.push(max_order_id_res.rows[i]);
+                // console.log(max_order_id_res.rows[i]);
+                // console.log(max_order_id_res.rows[i].max);
+                max_val = max_order_id_res.rows[i].max;
+            }
+            // const data = {max_val: max_val};
+            const data = {max_item: max_item, max_val: max_val };
+            // console.log(drinks);
+            // console.log(max_list);
+            // console.log(max_val);
+            res.render('order', data);
+        })
+        .catch(error => {
+            console.error('Error executing query', error);
+            res.status(500).send('Internal Server Error');
+        });
+}); 
+
+app.get('/cashierorder', (req, res) => {
+    current_order = ["hello", "howdy"]
+    drinks = []
+    max_item = [];
+    max_val = '';
+    pool
+        // .query('SELECT * FROM drink_dictionary ORDER BY drink_id asc;')
+        // .then(query_res => {
+        //     for (let i = 0; i < query_res.rowCount; i++){
+        //         drinks.push(query_res.rows[i]);
+        //     }
+        //     // const data = {drinks: drinks};
+        //     // console.log(drinks);
+        //     // res.render('order', data);
+
+        //     // Query customizations
+        //     return pool.query('SELECT MAX(order_id) FROM order_history;');
+        // })
+        .query('SELECT MAX(order_id) FROM order_history;')
+        .then(max_order_id_res => {
+            for (let i = 0; i < max_order_id_res.rowCount; i++) {
+                max_item.push(max_order_id_res.rows[i]);
+                // console.log(max_order_id_res.rows[i]);
+                // console.log(max_order_id_res.rows[i].max);
+                max_val = max_order_id_res.rows[i].max;
+            }
+            // const data = {max_val: max_val};
+            const data = {max_item: max_item, max_val: max_val };
+            // console.log(drinks);
+            // console.log(max_list);
+            // console.log(max_val);
+            res.render('cashierorder', data);
+        })
+        .catch(error => {
+            console.error('Error executing query', error);
+            res.status(500).send('Internal Server Error');
+        });
+}); 
+
+
+/**
+ * Manager inventory page
+ * @function
+ * @memberof module:manager/pages
+ * @name managerInventory
+ */
+app.get('/inventory', isLoggedIn, (req, res) => {
+    inventory_items = []
+    pool
+        .query('SELECT * FROM inventory;')
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                inventory_items.push(query_res.rows[i]);
+            }
+            const data = {inventory_items: inventory_items};
+            //console.log(inventory_items);
+            res.render('inventory', data);
+        });
+});
+
+
+
+/**
+ * Express app customer orders
+ * @module order
+ * @requires app
+ */
+
+/**
+ * Update order
+ * @function
+ * @memberof module:order
+ * @name updateOrder
+ */
+app.post('/updateorder', (req, res) => {
+    const { order_id, order_date, order_time, num_drinks, total_cost, drink1, drink2, drink3, drink4, drink5, drink6, drink7, drink8, drink9, drink10, ingredients, action } = req.body;
+
+    //const sql = "INSERT INTO order_history VALUES " + order_str;
+    // if (action == "update"){
+        const sql = `INSERT INTO order_history VALUES 
+                    ('${order_id}', '${order_date}', '${order_time}', 
+                        '${num_drinks}', '${total_cost}', 
+                        '${drink1}', '${drink2}', '${drink3}', '${drink4}', '${drink5}', '${drink6}', '${drink7}', '${drink8}', '${drink9}', '${drink10}', 
+                        '${ingredients}' 
+                    );`;
+        console.log("sql" + sql);
+        pool.query(sql, (err, result) => {
+            if (err) {
+                console.error('Error updating order history: ' + err.message);
+                //res.status(500).json({ error: 'An error occurred' });
+                return;
+            }
+            console.log(result.rowCount + " order history updated");
+            res.json({ message: 'Order History updated successfully' });
+        });
+    // } 
+});
+
+
+//update inventory
+
+/*app.get('/inventory', function(req, res) {
+    res.render('inventory');
+});*/
+
+/**
+ * Update inventory
+ * @function
+ * @memberof module:manager
+ * @name updateInventory
+ */
+app.post('/updateinventory', (req, res) => {
+    const { product_id, itemname, total_amount, current_amount, restock, action } = req.body;
+
+    //const sql = 'UPDATE inventory SET itemname = \'project3\', total_amount = 0, current_amount = 0, restock = \'true\' WHERE product_id = 500019;';
+    if (action == "update"){
+
+    
+    const sql = `UPDATE inventory 
+                 SET itemname = '${itemname}', 
+                     total_amount = ${total_amount}, 
+                     current_amount = ${current_amount}, 
+                     restock = '${restock}' 
+                 WHERE product_id = ${product_id};`;
+
+    console.log("SQL Query:", sql)
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+} else if (action == "add"){
+
+    const sql = `INSERT INTO inventory (product_id, itemname, total_amount, current_amount, restock)
+    VALUES (${product_id}, '${itemname}', ${total_amount}, ${current_amount}, '${restock}');`;
+
+    console.log("SQL Query:", sql)
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+
+}
+});
+
+/**
+ * Add inventory
+ * @function
+ * @memberof module:manager
+ * @name addInventory
+ */
+app.post('/addinventory', (req, res) => {
+    const { product_id, itemname, total_amount, current_amount, restock} = req.body;
+
+    //const sql = 'UPDATE inventory SET itemname = \'project3\', total_amount = 0, current_amount = 0, restock = \'true\' WHERE product_id = 500019;';
+    const sql = `INSERT INTO inventory (product_id, itemname, total_amount, current_amount, restock)
+    VALUES (${product_id}, '${itemname}', ${total_amount}, ${current_amount}, '${restock}');`;
+
+    console.log("SQL Query:", sql)
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+});
+
+/**
+ * Add inventory
+ * @function
+ * @memberof module:manager
+ * @name addInventory
+ */
+app.post('/deleteinventory', (req, res) => {
+    const { product_id, itemname, total_amount, current_amount, restock} = req.body;
+
+    //const sql = 'UPDATE inventory SET itemname = \'project3\', total_amount = 0, current_amount = 0, restock = \'true\' WHERE product_id = 500019;';
+    const sql = `DELETE FROM inventory WHERE product_id = '${product_id}';`;
+
+    console.log("SQL Query:", sql)
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+});
+
+
+/**
+ * Delete Menu
+ * @function
+ * @memberof module:manager
+ * @name addInventory
+ */
+app.post('/deletemenu', (req, res) => {
+    const { product_id, itemname, total_amount, current_amount, restock} = req.body;
+
+    //const sql = 'UPDATE inventory SET itemname = \'project3\', total_amount = 0, current_amount = 0, restock = \'true\' WHERE product_id = 500019;';
+    const sql = `DELETE FROM drink_dictionary WHERE drink_id = '${product_id}';`;
+
+    console.log("SQL Query:", sql)
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+});
+
+//update menu
+/**
+ * Update menu
+ * @function
+ * @memberof module:manager
+ * @name updateMenu
+ */
+app.post('/updatemenu', (req, res) => {
+    const { drink_id, name, price, ingredients, action} = req.body;
+
+    if(action == "update") {
+        //User hit the Submit for Approval button, handle accordingly
+        const sql = `UPDATE drink_dictionary 
+                 SET name = '${name}', 
+                     price = ${price}, 
+                     ingredients = '${ingredients}' 
+                 WHERE drink_id = '${drink_id}';`;
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+      }
+
+    //const sql = 'UPDATE inventory SET itemname = \'project3\', total_amount = 0, current_amount = 0, restock = \'true\' WHERE product_id = 500019;';
+});
+
+/**
+ * Add menu
+ * @function
+ * @memberof module:manager
+ * @name addMenu
+ */
+app.post('/addmenu', (req, res) => {
+    const { drink_id, name, price, ingredients} = req.body;
+
+        const sql = `INSERT INTO drink_dictionary (drink_id, name, price, ingredients)
+             VALUES ('${drink_id}', '${name}', ${price}, '${ingredients}');`;
+        console.log('SQL Query from add:', sql);
+        pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+    
+});
+
+/**
+ * Update record
+ * @function
+ * @memberof module:order
+ * @name updateRecord
+ */
+app.post('/updateRecord', (req, res) => {
+    const sql = 'UPDATE test_table SET id = 2 WHERE name = \'Milk Tea\';';
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+});
+
+
+/**
+ * Express app manager reports
+ * @module manager/reports
+ * @requires app
+ */
+
+// sales report
+/**
+ * Sales report
+ * @function
+ * @memberof module:manager/reports
+ * @name salesReport
+ */
+app.post('/searchsales', (req, res) => {
+    const { startDate, startTime, endDate, endTime, menuItem } = req.body;
+
+    const sqlStatement = `
+        SELECT * 
+        FROM order_history 
+        WHERE (order_date || ' ' || order_time) BETWEEN $1 AND $2
+        AND (drink1 = $3 OR drink2 = $4 OR drink3 = $5 OR drink4 = $6 OR drink5 = $7 OR
+             drink6 = $8 OR drink7 = $9 OR drink8 = $10 OR drink9 = $11 OR drink10 = $12);
+    `;
+
+    const values = [
+        `${startDate} ${startTime}`,
+        `${endDate} ${endTime}`,
+        menuItem, menuItem, menuItem, menuItem, menuItem,
+        menuItem, menuItem, menuItem, menuItem, menuItem
+    ];
+
+    pool.query(sqlStatement, values)
+        .then(query_res => {
+            const result = query_res.rows;
+            res.json({ message: 'Search successful', result });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            res.json({ message: 'Error in search', error: error.message });
+        });
+});
+
+// excess
+/**
+ * Excess report
+ * @function
+ * @memberof module:manager/reports
+ * @name excessReport
+ */
+app.post('/searchexcess', (req, res) => {
+    const sqlStatement = `
+        SELECT product_id, itemname, total_amount, current_amount
+        FROM inventory
+        WHERE current_amount > total_amount;
+    `;
+
+    pool.query(sqlStatement)
+        .then(query_res => {
+            const result = query_res.rows;
+            res.json({ message: 'Excess report generated successfully', result });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            res.json({ message: 'Error generating excess report' });
+        });
+});
+
+// restock report
+/**
+ * Restock report
+ * @function
+ * @memberof module:manager/reports
+ * @name restockReport
+ */
+app.post('/searchrestock', (req, res) => {
+    const sqlStatement = `
+        SELECT product_id, itemname, total_amount, current_amount
+        FROM inventory
+        WHERE restock = 't'
+        ORDER BY product_id ASC;
+    `;
+
+    pool.query(sqlStatement)
+        .then(query_res => {
+            const result = query_res.rows;
+            res.json({ message: 'Restock report generated successfully', result });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            res.json({ message: 'Error generating restock report' });
+        });
+});
+
+// popularity report
+/**
+ * Popularity report
+ * @function
+ * @memberof module:manager/reports
+ * @name popularityReport
+ */
+app.post('/searchpop', (req, res) => {
+    const { startDate, endDate, numItems } = req.body;
+
+    const sqlStatement = `
+        SELECT drink_id, name, COUNT(*) AS frequency
+        FROM order_history a
+        INNER JOIN drink_dictionary b ON a.drink1 = b.drink_id
+        WHERE a.order_date BETWEEN $1 AND $2
+        GROUP BY drink_id, name
+        ORDER BY frequency DESC
+        LIMIT 1;
+    `;
+
+    const values = [startDate, endDate];
+
+    pool.query(sqlStatement, values)
+        .then(query_res => {
+            const result = query_res.rows[0];
+            if (result) {
+                const statistic = `${result.frequency} ${result.name}`;
+                res.json({ message: 'Popularity statistic retrieved successfully', statistic });
+            } else {
+                res.json({ message: 'No data found for the specified time window', statistic: null });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            res.json({ message: 'Error retrieving popularity statistic', error: error.message });
+        });
+});
+
+
+// sales together report
+/**
+ * Sales together report
+ * @function
+ * @memberof module:manager/reports
+ * @name salesTogetherReport
+ */
+app.post('/searchwst', (req, res) => {
+    const { startDate, endDate } = req.body;
+
+    const sqlStatement = `
+        SELECT a.drink1, a.drink2, COUNT(*) AS frequency
+        FROM order_history a
+        INNER JOIN order_history b ON a.order_id = b.order_id
+        WHERE a.drink1 < a.drink2
+        AND a.order_date BETWEEN $1 AND $2
+        GROUP BY a.drink1, a.drink2
+        ORDER BY frequency DESC;
+    `;
+
+    const values = [startDate, endDate];
+
+    pool.query(sqlStatement, values)
+        .then(query_res => {
+            const result = query_res.rows;
+            res.json({ message: 'Frequent sales search successful', result });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            res.json({ message: 'Error in frequent sales search', error: error.message });
+        });
+});
+
+/**
+ * Sales page rendering
+ * @function
+ * @memberof module:manager/reports
+ * @name salesRendering
+ */
+app.get('/sales', isLoggedIn, function(req, res) {
+    console.log("Rendering sales page");
+    res.render('sales');
+});
+
+/**
+ * Excess page rendering
+ * @function
+ * @memberof module:manager/reports
+ * @name excessRendering
+ */
+app.get('/excess', isLoggedIn, function(req, res) {
+    console.log("Rendering excess page");
+    res.render('excess');
+});
+
+/**
+ * Restock page rendering
+ * @function
+ * @memberof module:manager/reports
+ * @name restockRendering
+ */
+app.get('/restock', isLoggedIn, function(req, res) {
+    console.log("Rendering restock page");
+    res.render('restock');
+});
+
+/**
+ * Popularity page rendering
+ * @function
+ * @memberof module:manager/reports
+ * @name popularityRendering
+ */
+app.get('/popularity', isLoggedIn, function(req, res) {
+    console.log("Rendering popularity page");
+    res.render('popularity');
+});
+
+/**
+ * Wst page rendering
+ * @function
+ * @memberof module:manager/reports
+ * @name wstRendering
+ */
+app.get('/wst', isLoggedIn, function(req, res) {
+    console.log("Rendering wst page");
+    res.render('wst');
+});
+
+//send order info to cashier side
+/**
+ * Send order info to cashier 
+ * @function
+ * @memberof module:order
+ * @name sendOrder
+ */
+app.post('/sendOrderInfo', (req, res) => {
+    const { name, price, quantity, ice_level, sweetness_level, toppings, customer_name} = req.body;
+
+    const sql = `INSERT INTO order_info (name, price, ice_level, sweetness_level, toppings, order_complete, quantity, customer_name)
+        VALUES ('${name}', ${price}, '${ice_level}', '${sweetness_level}', '${toppings}', FALSE, ${quantity}, '${customer_name}');`;
+
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+});
+
+//complete order
+/**
+ * Complete order in database
+ * @function
+ * @memberof module:order
+ * @name completeOrder
+ */
+app.post('/completeOrder', (req, res) => {
+    console.log(req.body)
+    const { name, price, quantity, ice_level, sweetness_level, toppings} = req.body;
+
+    const sql = `UPDATE order_info SET order_complete = TRUE WHERE name = '${name}' AND price = ${price} AND ice_level = '${ice_level}' AND sweetness_level = '${sweetness_level}' AND toppings = '${toppings}' AND quantity = ${quantity};`;
+
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        //console.log(`UPDATE order_info SET order_complete = TRUE WHERE name = '${name}' AND price = ${price} AND ice_level = '${ice_level}' AND sweetness_level = '${sweetness_level}' AND toppings = '${toppings}' AND quantity = ${quantity};`);
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+});
+
+//complete order for specific customer
+/**
+ * Complete order in database for specific customer
+ * @function
+ * @memberof module:order
+ * @name completeOrderCustomer
+ */
+app.post('/completeCustomerOrder', (req, res) => {
+    console.log(req.body)
+    const {customer_name} = req.body;
+
+    const sql = `UPDATE order_info SET order_complete = TRUE WHERE customer_name = '${customer_name}';`;
+
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        //console.log(`UPDATE order_info SET order_complete = TRUE WHERE name = '${name}' AND price = ${price} AND ice_level = '${ice_level}' AND sweetness_level = '${sweetness_level}' AND toppings = '${toppings}' AND quantity = ${quantity};`);
+        console.log(result.rowCount + " record(s) updated");
+        res.json({ message: 'Record updated successfully' });
+    });
+});
+
+/**
+ * Express app employee side
+ * @module cashier
+ * @requires app
+ */
+
+/**
+ * Cashier page
+ * @function
+ * @memberof module:cashier
+ * @name cashierPage
+ */
+app.get('/cashier', (req, res) => {
+    order_info_data = []
+    pool
+        .query(`SELECT * FROM order_info WHERE order_complete = FALSE ORDER BY customer_name;`)
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                order_info_data.push(query_res.rows[i]);
+            }
+            const data = {order_info_data: order_info_data};
+            //console.log(order_info_data);
+            res.render('cashier', data);
+        });
+});
+
+/**
+ * Employee login page
+ * @function
+ * @memberof module:pages
+ * @name employeeLoginPage
+ */
+app.get('/employee', (req, res) => {
+    employee_data = [];
+    pool
+        .query('SELECT * FROM all_employees;')
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                employee_data.push(query_res.rows[i]);
+            }
+            const data = {employee_data: employee_data};
+            console.log(employee_data);
+            res.render('employee', data);
+    });
+});
+
+// Handle order submission and rendering "cashier.ejs"
+/**
+ * Cashier page and order submissions
+ * @function
+ * @memberof module:cashier
+ * @name submitOrder
+ */
+app.post('/submitOrder', (req, res) => {
+    const orderData = req.body; 
+    res.render('cashier', { orderData });
+});
+
+//Contact us Page
+/**
+ * Contact form submission
+ * @function
+ * @memberof module:pages
+ * @name contactSubmission
+ */
+app.post('/submitContactForm', (req, res) => {
+    const { firstname, lastname, email, region, subject } = req.body;
+
+    const sql = 'INSERT INTO contact_us (firstname, lastname, email, region, subject) VALUES ($1, $2, $3, $4, $5)';
+
+    pool.query(sql, [firstname, lastname, email, region, subject], (err, result) => {
+        if (err) {
+            console.error('Error updating record: ' + err.message);
+            res.status(500).json({ error: 'An error occurred' });
+            return;
+        }
+        console.log(result.rowCount + ' record(s) updated');
+        res.json({ message: 'Record updated successfully' });
+    });
+});
+
+//Contact responses page on manager side
+/**
+ * Contact responses page
+ * @function
+ * @memberof module:manager/pages
+ * @name contactResponsesPages
+ */
+app.get('/contact_responses', isLoggedIn, (req, res) => {
+    contact_data = []
+    pool
+        .query('SELECT * FROM contact_us;')
+        .then(query_res => {
+            for (let i = 0; i < query_res.rowCount; i++){
+                contact_data.push(query_res.rows[i]);
+            }
+            const data = {contact_data: contact_data};
+            // console.log(contact_data);
+            res.render('contact_responses', contact_data);
+        });
+})
+
+app.get('/test', (req, res) => {
+    res.render('test');
+});
+
+/**
+ * Log the app listening in console
+ * @function
+ * @memberof module:app
+ * @name logListening
+ */
+app.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`);
+});

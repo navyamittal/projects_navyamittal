@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="theme" rel="stylesheet" type="text/css" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <h1><center>YOU HAVE SUCCESSFULLY BEEN LOGGED OUT!</center></h1>
+    <button class="loginbutton" id="redirectButton"><center>Return to Customer Side</center></button>
+</body>
+    <script type="text/javascript">
+        localStorage.setItem('cashierLoggedIn', 'false');
+        document.getElementById("redirectButton").onclick = function () {
+            location.href = "/";
+        };
+    </script>
+
+</html>

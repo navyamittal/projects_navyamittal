@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Contact Us</title>
+<script type="text/javascript"></script>
+<link id="theme" rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <ul>
+            <li><a href="reports.html">Reports</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="inventory.html"></a>Inventory</li>
+        </ul>
+    </nav>
+    <div id="google_translate_element"></div>
+ 
+    <script type="text/javascript">
+        function myFunction() {
+            // Send an POST request to the server
+            fetch('/updateRecord', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+ 
+    <button onclick="myFunction()">Click me</button>
+</body>
+</html>
+
+

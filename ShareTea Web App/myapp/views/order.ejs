@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="theme" rel="stylesheet" type="text/css" href="style.css">
+    <title>ShareTea</title>
+</head>
+<body>
+    <!-- <div id="google_translate_element"></div> -->
+    <br>
+ 
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {pageLanguage: 'en'},
+                'google_translate_element'
+            );
+        }
+    </script>
+ 
+    <script type="text/javascript"
+            src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+    <script src="script.js"></script>
+
+
+    <div id="header">
+        <a id="dont-read" href="/"><img src="logo-clearbg.png" class="logo" alt="Picture of the ShareTea logo"></a>
+        <a id="dont-read" href="employee" class="employeebutton">Employee Login</a>
+        <div id="dont-read" class="navigation">
+            <nav id="dont-read" class="main-nav">
+                <ul id="dont-read">
+                    <li id="dont-read"><a id="dont-read" href="/">Home</a></li>
+                    <li id="dont-read"><a id="dont-read" href="menu">Menu</a></li>
+                    <li id="dont-read"><a id="dont-read" href="contact">Contact Us</a></li>
+                    <li id="dont-read"><a id="dont-read" href="order">Cart</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <img src="accessibilityicon.png" id="accessibility-button" style="position: absolute; top: 10px; left: 10px; cursor: pointer; width: 60px;" alt="Accessibility Options">
+
+    <!-- Accessibility Dropdown -->
+    <div id="accessibility-dropdown">
+        <button id="accessibility-option" onclick="enlargeAllText()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;" >ENLARGE TEXT SIZE</button>
+        <button id="accessibility-option" onclick="reduceSizeAllText()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">REDUCE TEXT SIZE</button>
+        <button id="accessibility-option" onclick="revertToNormal()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">REVERT TO NORMAL</button>
+        <button id="accessibility-option" onclick="changeContrast()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">CHANGE CONTRAST</button>
+        <button id="accessibility-option" onclick="startSpeaking()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">START SPEAKING PAGE</button>
+        <button id="accessibility-option" onclick="pauseResumeSpeaking()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">PAUSE/RESUME SPEAKING</button>
+        <button id="accessibility-option" onclick="stopSpeaking()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">STOP SPEAKING PAGE</button>
+        <button id="accessibility-option" onclick="openWeatherModal()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">GET WEATHER</button>
+        <div id="google_translate_element"></div>
+
+    </div>
+
+    <div id="cart">
+        <h2>Shopping Cart</h2>
+        <table id="cart-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="cart-items">
+                <!-- Order items will be displayed here -->
+            </tbody>
+        </table>
+        <p>Total Amount: $<span id="total-amount">0.00</span></p>
+        <button id="submit-button">Submit Order</button>
+    </div>
+    <p id = "max-value" style="display: none;"><%=max_item[0].max%></p>
+
+    <script>
+        //alert("started");
+
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+        let totalAmount;
+        let totalQuantity;
+        let order_drinks = ['0000', '0000', '0000', '0000', '0000', '0000', '0000', '0000', '0000', '0000'];
+        let ingredients_drinks = "";
+        //alert("created" + drinks[0]);
+
+        function displayCartFromLocalStorage() {
+            //alert("cart display" + drinks[0]);
+
+            const cartBody = document.getElementById('cart-items');
+            cartBody.innerHTML = ''; // Clear existing cart items
+
+            const storedCart = JSON.parse(localStorage.getItem('cart'));
+            totalAmount = 0;
+            totalQuantity = 0;
+
+            if (storedCart && storedCart.length > 0) {
+                storedCart.forEach((item) => {
+                    const cartRow = document.createElement('tr');
+                    cartRow.setAttribute('data-price', item.price);
+
+                    // Quantity column
+                    const quantityCell = document.createElement('td');
+                    quantityCell.textContent = `${item.quantity}x`;
+                    quantityCell.setAttribute('data-quantity', item.quantity); 
+                    cartRow.appendChild(quantityCell);
+
+                    // Item column
+                    const itemDrinkCell = document.createElement('td');
+                    //const itemDrinkBullet = document.createElement('ul');
+                    const itemDrinkIce = document.createElement('li');
+                    const itemDrinkSweet = document.createElement('li');
+                    const itemDrinkTopping = document.createElement('li');
+                    itemDrinkCell.textContent = item.name;
+                    itemDrinkCell.classList.add('item-name');
+                    itemDrinkIce.textContent = item.ice_level;
+                    itemDrinkIce.classList.add('item-ice_level');
+                    itemDrinkSweet.textContent = item.sweetness_level;
+                    itemDrinkSweet.classList.add('item-sweetness_level');
+                    itemDrinkTopping.textContent = item.toppings;
+                    itemDrinkTopping.classList.add('item-toppings');
+                    itemDrinkCell.appendChild(itemDrinkIce);
+                    itemDrinkCell.appendChild(itemDrinkSweet);
+                    itemDrinkCell.appendChild(itemDrinkTopping);
+                    //itemDrinkCell.appendChild(itemDrinkBullet);
+                    cartRow.appendChild(itemDrinkCell);
+
+                    // Price column
+                    const priceCell = document.createElement('td');
+                    priceCell.textContent = `$${calculatePrice(item.price, item.quantity)}`; // Calculate the price based on quantity
+                    cartRow.appendChild(priceCell);
+
+                    // Remove column
+                    const removeCell = document.createElement('td');
+                    const removeButton = document.createElement('button');
+                    removeButton.textContent = 'Remove';
+                    removeButton.addEventListener('click', function () {
+                        // Filter out the item to remove it from the cart
+                        const updatedCart = storedCart.filter((cartItem) => cartItem.name !== item.name);
+                        localStorage.setItem('cart', JSON.stringify(updatedCart));
+                        displayCartFromLocalStorage();
+                    });
+                    removeCell.appendChild(removeButton);
+                    cartRow.appendChild(removeCell);
+
+                    cartBody.appendChild(cartRow);
+
+                    // Update the total amount
+                    totalAmount += calculatePrice(item.price, item.quantity);
+
+                    // Update drinks
+                    for (let i=0; i<item.quantity; i++) {
+                        order_drinks[totalQuantity + i] = item.id;
+                        // update ingredients
+                        // ingredients_drinks += item.ingredients;
+                        // alert(item.ingredients);
+                    }
+
+                    // Update total quantity
+                    totalQuantity += item.quantity;
+                });
+            }
+
+            // Update the total amount
+            document.getElementById('total-amount').textContent = totalAmount.toFixed(2);
+        }
+
+        function calculatePrice(unitPrice, quantity) {
+            return unitPrice * quantity;
+        }
+
+        // Call the function to display cart items and total amount from localStorage
+        displayCartFromLocalStorage();
+
+        // Function to handle the submit button click
+        document.getElementById('submit-button').addEventListener('click', function () {
+            // Retrieve the cart items from local storage
+            console.log("button clicked");
+            const customer_name = prompt("Enter customer name");
+            if (customer_name === "") {
+                alert('Please enter a name.');
+                return;
+            }
+            const storedCart = JSON.parse(localStorage.getItem('cart'));
+
+            sendOrderInfo(storedCart, customer_name); 
+
+            if (storedCart && storedCart.length > 0) {
+                // add Order to Local storage
+                storedCart.forEach((item) => {
+                    orders.push(item);
+                });
+                saveOrderToLocalStorage();
+
+                // Display a message
+                const message = document.createElement('p');
+                message.textContent = 'Order is Submitted';
+                document.getElementById('cart').appendChild(message);
+
+                // FIXME update database
+                alert("about to update database");
+                updateDatabase();
+
+                // After submitting the order, you can clear the cart
+                localStorage.removeItem('cart');
+
+                // Update the displayed cart
+                displayCartFromLocalStorage();
+            } else {
+                alert('Your cart is empty. Add items to submit an order.');
+            }
+        });
+
+        // Function to save the order to localStorage
+        function saveOrderToLocalStorage() {
+            localStorage.setItem('orders', JSON.stringify(orders));
+        }
+
+        // Function to update database
+        function updateDatabase() {
+            // Send an POST request to the server
+            // alert("updating");
+            // alert("order num " + max[i].max);
+
+            // const order_id = max[0] + 1;
+            // const order_id = "10040089";
+            // const order_id = data.max_val;
+            const order_id = parseInt(document.getElementById("max-value").innerHTML) + 1;
+            // alert(order_id);
+
+            const date = new Date();
+            let day = date.getDate();
+            let month = date.getMonth() + 1;
+            let year = date.getFullYear();
+            let time = date.toLocaleTimeString();
+
+            const order_date = `${year}-${month}-${day}`;
+
+            const order_time = `${time}`;
+            const num_drinks = totalQuantity;
+            const total_cost = totalAmount;
+            const drink1 = order_drinks[0];
+            const drink2 = order_drinks[1];
+            const drink3 = order_drinks[2];
+            const drink4 = order_drinks[3];
+            const drink5 = order_drinks[4];
+            const drink6 = order_drinks[5];
+            const drink7 = order_drinks[6];
+            const drink8 = order_drinks[7];
+            const drink9 = order_drinks[8];
+            const drink10 = order_drinks[9];
+            const ingredients = '0';
+            // ingredients = ingredients_drinks;
+
+            // alert("order_id: " + order_id);
+            // alert("quant " + totalQuantity);
+            // alert("amt " + totalAmount);
+        
+            // const drink_id = document.getElementById("drink_id").value;
+            // console.log("product_id: " + drink_id);
+            // const name = document.getElementById("name").value;
+            // console.log("name: " + name);
+            // const price = document.getElementById("price").value;
+            // console.log("price: " + price);
+            // const ingredients = document.getElementById("ingredients").value;
+            
+
+            const action = document.activeElement.value;
+
+            const data = {
+                order_id, 
+                order_date, 
+                order_time, 
+                num_drinks, 
+                total_cost, 
+                drink1, 
+                drink2, 
+                drink3, 
+                drink4, 
+                drink5, 
+                drink6, 
+                drink7, 
+                drink8, 
+                drink9, 
+                drink10, 
+                ingredients,
+                action,
+            };
+            // alert("data" + data);
+            // alert("data" + data.toString());
+            // alert(data.message);
+            // alert(JSON.stringify(data));
+
+            fetch('/updateorder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function sendOrderInfo(storedCart, customer_name) {
+            //console.log("HI IM HERE");
+            //const storedCart = JSON.parse(localStorage.getItem('cart'));
+            orders_information = [];
+            let totalAmount = 0;
+
+            if (storedCart && storedCart.length > 0) {
+                storedCart.forEach((item) => {
+                    const name = item.name;
+                    const price = item.price;
+                    const quantity = item.quantity;
+                    const ice_level = item.ice_level;
+                    const sweetness_level = item.sweetness_level;
+                    const toppings = item.toppings;
+
+                    const data = {
+                        name,
+                        price, 
+                        quantity,
+                        ice_level,
+                        sweetness_level,
+                        toppings,
+                        customer_name
+                    };
+                    fetch('/sendOrderInfo', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.message);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                });
+            
+            }
+            
+        }
+    </script>
+
+<script>
+    let synth;
+    let speaking = false;
+    let paused = false;
+    let utterance;
+
+    function initializeSynthesis() {
+        synth = window.speechSynthesis;
+
+        document.getElementById('speak-button').addEventListener('click', function () {
+            startSpeaking();
+            document.getElementById('stop-button').removeAttribute('disabled');
+        });
+
+        document.getElementById('stop-button').addEventListener('click', function () {
+            stopSpeaking();
+        });
+
+        // Add event listener for pause/resume button
+        document.getElementById('pause-resume-button').addEventListener('click', function () {
+            pauseResumeSpeaking();
+        });
+    }
+
+    function pauseResumeSpeaking() {
+        if (speaking) {
+            if (paused) {
+                synth.resume();
+                paused = false;
+                console.log("Speech resumed.");
+            } else {
+                synth.pause();
+                paused = true;
+                console.log("Speech paused.");
+            }
+        }
+    }
+
+    function readEntirePage() {
+        const elements = document.body.getElementsByTagName('*');
+        let fullText = '';
+
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            if (element.tagName !== 'SCRIPT' && element.id !== 'dont-read') {
+                fullText += element.innerText + ' ' + ' ' + ' ';
+            }
+        }
+
+        return fullText.trim();
+    }
+
+    function startSpeaking() {
+        const textToSpeak = readEntirePage();
+        if (synth.speaking) {
+            synth.cancel();
+        }
+
+        utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+        // Add a callback to the onstart event
+        utterance.onstart = function () {
+            console.log("Speech started. Currently speaking: " + textToSpeak);
+        };
+
+        synth.speak(utterance);
+        speaking = true;
+
+        utterance.onend = function () {
+            speaking = false;
+            paused = false;
+            document.getElementById('stop-button').setAttribute('disabled', true);
+        };
+    }
+
+    function stopSpeaking() {
+        if (speaking) {
+            synth.cancel();
+        }
+    }
+    
+    function changeContrast() {
+        var bodyElement = document.body;
+        var modal = document.getElementById("weatherModal");
+
+        // Invert colors using the filter property
+        var invertValue = bodyElement.style.filter === 'invert(100%)' ? 'invert(0%)' : 'invert(100%)';
+        bodyElement.style.filter = invertValue;
+
+        // Invert background color
+        var bgColor = bodyElement.style.backgroundColor === 'rgb(0, 0, 0)' ? '#fff' : '#000';
+        bodyElement.style.backgroundColor = bgColor;
+
+        // Invert colors for the modal as well
+        if (modal) {
+            modal.style.filter = invertValue;
+            modal.style.backgroundColor = bgColor;
+        }
+    }
+    document.getElementById('accessibility-button').addEventListener('click', function () {
+        var dropdown = document.getElementById('accessibility-dropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+
+    function openWeatherModal() {
+        document.getElementById("weatherModal").style.display = "block";
+    }
+
+    function closeWeatherModal() {
+        document.getElementById("weatherModal").style.display = "none";
+    }
+
+    function getweather() {
+        var city = document.getElementById("modalSearch").value;
+        var units = document.getElementById("modalUnits").value;
+        var apiKey = "d2dda5a067msh26327237b9ff85dp18f58ejsn0b86f84efa1d";
+        var apiUrl = "https://weatherapi-com.p.rapidapi.com/current.json?q=" + city + "&units=" + units;
+
+        fetch(apiUrl, {
+            method: "GET",
+            headers: {
+                "X-RapidAPI-Host": "weatherapi-com.p.rapidapi.com",
+                "X-RapidAPI-Key": apiKey,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById("weatherInfo").innerHTML = "Error: " + data.error.message;
+            } else {
+                var temp, fl;
+                if (units == "f") {
+                    temp = "temp_f";
+                    fl = "feelslike_f";
+                } else {
+                    temp = "temp_c";
+                    fl = "feelslike_c";
+                }
+                document.getElementById("weatherInfo").innerHTML = "<h1>" + data.current.condition.text + "</h1>Temperature: " + data.current[temp] + "<br>Feels like: " + data.current[fl] + "<br>UV index: " + data.current.uv + "<br>Humidity: " + data.current.humidity + "<br>Cloud cover: " + data.current.cloud;
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }
+
+    // Store original font sizes
+    var originalFontSizes = {};
+
+    // Get original font sizes when the page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            originalFontSizes[element] = window.getComputedStyle(element, null).getPropertyValue('font-size');
+        });
+    });
+
+    function revertToNormal() {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            element.style.fontSize = originalFontSizes[element];
+        });
+    }
+
+    function enlargeAllText() {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            var currentSize = window.getComputedStyle(element, null).getPropertyValue('font-size');
+            var newSize = (parseFloat(currentSize) * 1.2) + 'px'; // Increase font size by 50%
+            element.style.fontSize = newSize;
+        });
+    }
+
+    function reduceSizeAllText() {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            var currentSize = window.getComputedStyle(element, null).getPropertyValue('font-size');
+            var newSize = (parseFloat(currentSize) * 0.833333) + 'px'; // Decrease font size 
+            element.style.fontSize = newSize;
+        });
+    }
+
+    initializeSynthesis();
+</script>
+
+<div id="weatherModal" class="modal">
+<div class="modal-content">
+    <span class="close" onclick="closeWeatherModal()">&times;</span>
+    <h2>Weather Information</h2>
+    <label for="modalSearch">City:</label>
+    <input placeholder="City" id="modalSearch">
+    <select id="modalUnits">
+        <option value="f">Fahrenheit</option>
+        <option value="c">Celsius</option>
+    </select>
+    <button onclick="getweather()">Get Weather!</button>
+    <div id="weatherInfo"></div>
+</div>
+</div>
+
+    
+    <div id="back-to-menu">
+        <a href="menu" class="menu-button">Back to Menu</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+﻿Scrum Meeting Minutes
+Team Members: Jocelyn Dai, Navya Mittal, Rhea Phatak, Christiana Vancura, Bonnie Wu
+
+
+10/22 (10:00pm)
+* Decided project 3 roles
+
+
+10/26
+* Turn in project design document
+
+
+10/29 (5:30pm)
+* Create basic html for designs
+
+
+10/30 (8:00am)
+* Plan refactoring of Project 2 code
+
+
+10/30 (5:45pm)
+* Create myapp folder
+* Start using node.js
+* Connect to database
+
+
+11/1 (8:00am)
+* Create user study design questions
+
+
+11/1 (1:30pm)
+* Convert html to ejs
+
+
+11/1 (5:45pm)
+* Showed preliminary Sprint 1 product
+
+
+11/2 (5:30 pm)
+* Add employee login page and work on authentication
+
+
+11/3 (12:30pm) 
+* (Meeting from 11/2 at 5:30pm, delayed due to time conflict)
+* Created and practiced presentation for Team Meeting
+
+
+11/3 (1:50pm)
+* Recorded Team Meeting 
+* Uploaded to Canvas
+
+
+11/6 (8:00am)
+* Conversed with Dr.Taele about Team Meeting
+
+
+11/6 (5:45pm)
+* Worked on render deployment
+* Discussed work needed for finishing Sprint 1 
+   * Need deployment
+   * Weather
+
+
+11/7 (10:00pm)
+* Finished final functionality for render deployment
+   * Connected with postgresql database
+* Confirmed functionality of Sprint 1 requirements
+   * Weather
+   * Order
+   * Menu
+   * All pages deployed

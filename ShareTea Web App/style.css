@@ -1,0 +1,113 @@
+/* logo */
+.logo {
+    width: 250px;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* navigation bar */
+nav {
+    margin-top: 80px;
+    text-align: center;
+}
+
+nav ul {
+    padding: 0;
+}
+
+nav ul li {
+    display: inline-block;
+    list-style: none;
+    margin: 5px 10px; 
+}
+
+nav ul li a {
+    color: black;
+    text-decoration: none;
+    font-size: 20px;
+}
+
+.employeebutton{
+    position: absolute; top: 10px; right: 10px;
+    color: black;
+    border: solid;
+
+}
+
+.login{
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%)
+}
+
+div.login p{
+    font-size: 20px;
+    text-align: center;
+    text-decoration: bold;
+}
+
+.loginbutton{
+    display: inline-block;
+    background: red;
+    display: block;
+    margin: 50px auto;
+    width: fit-content;
+    padding: 14px 50px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: medium;
+}
+
+.button:redirectButton{
+
+    display: inline-block;
+    background: red;
+    display: block;
+    margin: 50px auto;
+    width: fit-content;
+    padding: 14px 50px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: medium;
+
+}
+
+form input, form textarea{
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: #eae7e7;
+    padding: 15px;
+    margin: 15px 0;
+    font-size: 18px;
+    border-radius: 6px;
+}
+.centerIndex {
+    border-radius: 20px 20px 20px 20px;
+    line-height: 100px;
+    height: 100px;
+    border: 3px solid green;
+    text-align: center;
+  }
+  
+  .center p {
+    line-height: 1.5;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+.fuecocoImage {
+    float: right;
+    margin: 0px 20px 15px 20px;
+}
+.lotadImage {
+    float: left;
+    margin: 0px 20px 15px 20px;
+}
+
+

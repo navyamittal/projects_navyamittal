@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="theme" rel="stylesheet" type="text/css" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <!-- <div id="google_translate_element"></div> -->
+    <br>
+ 
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {pageLanguage: 'en'},
+                'google_translate_element'
+            );
+        }
+    </script>
+ 
+    <script type="text/javascript"
+            src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+
+            
+    </script>
+    <script src="script.js"></script>
+    <a href="/"><img src="logo-clearbg.png" class="logo"></a>
+    <a href="employee" class="employeebutton">Employee Login</a>
+    <div id="header">
+        <a   href="/"><img src="logo-clearbg.png" class="logo" alt="Picture of the ShareTea logo"></a>
+        <a   href="employee" class="employeebutton">Employee Login</a>
+        <div   class="navigation">
+            <nav   class="main-nav">
+                <ul  >
+                    <li  ><a   href="/">Home</a></li>
+                    <li  ><a   href="menu">Menu</a></li>
+                    <li  ><a   href="contact">Contact Us</a></li>
+                    <li  ><a   href="order">Cart</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <img src="accessibilityicon.png" id="accessibility-button" style="position: absolute; top: 10px; left: 10px; cursor: pointer; width: 60px;" alt="Accessibility Options">
+
+    <!-- Accessibility Dropdown -->
+    <div id="accessibility-dropdown">
+        <button id="accessibility-option" onclick="enlargeAllText()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;" >ENLARGE TEXT SIZE</button>
+        <button id="accessibility-option" onclick="reduceSizeAllText()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">REDUCE TEXT SIZE</button>
+        <button id="accessibility-option" onclick="revertToNormal()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">REVERT TO NORMAL</button>
+        <button id="accessibility-option" onclick="changeContrast()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">CHANGE CONTRAST</button>
+        <button id="accessibility-option" onclick="startSpeaking()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">START SPEAKING PAGE</button>
+        <button id="accessibility-option" onclick="pauseResumeSpeaking()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">PAUSE/RESUME SPEAKING</button>
+        <button id="accessibility-option" onclick="stopSpeaking()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">STOP SPEAKING PAGE</button>
+        <button id="accessibility-option" onclick="openWeatherModal()" style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 15px;">GET WEATHER</button>
+        <div id="google_translate_element"></div>
+
+    </div>
+
+    <div id="menu-cart">
+        <h2 style="font-weight: 400; font-size: 30px;">Shopping Cart</h2>
+        <ul style="font-weight: 300;" id="cart-items">
+            <!-- Cart items will be displayed here -->
+        </ul>
+        <div id="proceed-to-cart">
+            <a href="/order" class="cart-button">Review order</a>
+        </div>
+    </div>
+    <div class = "jump-to">
+        jump to: 
+        <nav class="menu-nav"> <ul>
+        <li><a href = "#milktea"> Milk Tea</a></li>
+        <li><a href = "#brewedtea"> Brewed Tea</a></li>
+        <li><a href = "#fruittea"> Fruit Tea</a></li>
+        <li><a href = "#freshmilk"> Fresh Milk Tea</a></li>
+        <li><a href = "#iceblended"> Ice Blended</a></li>
+        <li><a href = "#mojito"> Mojito</a></li>
+        <li><a href = "#creama"> Creama</a></li>
+        <li><a href = "#seasonal"> Seasonal</a></li>
+    </ul> </nav>
+    </div>
+    <div class = "menu-container">
+        <!-- Display menu items with data attributes -->
+        <% for (var i in drinks) { %>
+            <% if (drink_type[i-1] != drink_type[i]) { %>
+                <h3 class="space"></h3>
+                <section id="<%= drink_type[i] %>"></section>
+                <h1 style="font-weight: 300; font-size: 100px; text-align: right; padding-right: 20px;"class="type-item <%= drink_type[i] %>">
+                    <% 
+                        var typeWords = type[drink_type[i]].split(" ");
+                        typeWords.forEach(function(word) { %>
+                            <%= word %> <br>
+                        <% });
+                    %>
+                </h1>
+                <div class="vertical-line"></div>
+                <div class="featured-drinks" style="font-weight: 200; font-size: 27px; width:500px;">
+                    <% if (drink_type[i] != "seasonal") { %>
+                        <p style="margin-bottom: 0px;">featured <%= type[drink_type[i]] %> drinks:</p>
+                    <% } %>
+                    <div class="representative-img">
+                        <% if (drink_type[i] != "seasonal") { %>
+                            <img src="<%= drink_type[i] %>.jpg" style="width:200px;" alt="<%= drink_type[i] %>" >
+                            <img src="<%= drink_type[i] %>-2.jpg" style="width:200px;" alt="<%= drink_type[i] %>" >
+                            <img src="<%= drink_type[i] %>-3.jpg" style="width:200px;" alt="<%= drink_type[i] %>" >
+                        <% } else { %>
+                            <img src="<%= drink_type[i] %>.jpg" style="margin-top:7%;width:600px;" alt="<%= drink_type[i] %>" >
+                        <% } %>
+                    </div>
+                </div>
+            <% } %>
+            <div class="menu-item <%= drink_type[i] %>">
+                <span class="item-name"><%= drinks[i].name %></span>
+                <span class="item-price">$<%= drinks[i].price %></span>
+                <!-- Add customization dropdowns -->
+                <select id="ice-level<%= i %>">
+                    <option value="0">Regular Ice</option>
+                    <option value="0">Less Ice</option>
+                    <option value="0">No Ice</option>
+                </select>
+                
+                <select id="sweetness-level<%= i %>">
+                    <option value="0">Normal Sweet</option>
+                    <option value="0">Less Sweet</option>
+                    <option value="0">Half Sweet</option>
+                    <option value="0">Light Sweet</option>
+                    <option value="0">No Sugar</option>
+                </select>
+                
+                <select id="topping<%= i %>">
+                    <option value="0">No Topping</option>
+                    <option value="0.5">Pearl</option>
+                    <option value="0.5">Mini Pearl</option>
+                    <option value="1">Ice Cream</option>
+                    <option value="0.5">Pudding</option>
+                    <option value="0.5">Aloe Vera</option>
+                    <option value="0.5">Red Bean</option>
+                    <option value="0.5">Herb Jelly</option>
+                    <option value="0.5">Aiyu Jelly</option>
+                    <option value="0.5">Lychee Jelly</option>
+                    <option value="1">Crema</option>
+                </select>
+                <button class="add-to-cart" data-name="<%= drinks[i].name %>" data-price="<%= drinks[i].price %>" data-drink_id="<%= drinks[i].drink_id %>">
+                    Add to Cart
+                </button>
+            </div>
+        <% } %>
+    </div>
+
+    <script>
+
+        
+        // Initialize the cart from localStorage or create an empty cart
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // Function to add items to the cart
+        function addToCart(itemName, itemPrice, iceLevel, sweetnessLevel, toppingSelected, itemID, itemIngredients) {
+            const quantity = parseInt(prompt(`Enter quantity for ${itemName}:`));
+            if (isNaN(quantity) || quantity <= 0) {
+                alert('Please enter a valid quantity.');
+                return;
+            }
+
+            // Check if the item is already in the cart
+            const existingItem = getCartItem(itemName);
+
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                const newItem = { name: itemName, price: itemPrice, quantity, ice_level: iceLevel, sweetness_level: sweetnessLevel, toppings : toppingSelected, id : itemID, ingredients : itemIngredients};
+                cart.push(newItem);
+            }
+
+            // Update the cart display and save the cart to localStorage
+            updateCartDisplay();
+            saveCartToLocalStorage();
+
+            alert('Order Added');
+        }
+
+        // Function to update the cart display
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cart-items');
+
+            // Clear the current cart display
+            cartItems.innerHTML = '';
+
+            // Iterate through the cart and display items and quantities
+            cart.forEach((item) => {
+                const cartItem = document.createElement('li');
+
+                // Display item name and quantity
+                const itemAll = document.createElement('div');
+
+                const itemNameAndQuantity = document.createElement('div');
+                itemNameAndQuantity.textContent = `${item.quantity}x    ${item.name}`;
+                itemNameAndQuantity.classList.add('item-name-quant');
+
+                itemAll.classList.add('item-all');
+
+                // Add details list to hold ice level, sweetness, and toppings
+                const itemDetailsList = document.createElement('div');
+                itemDetailsList.classList.add('item-details-list');
+
+                // Add labels and details for ice level, sweetness, and toppings
+                const iceLevelLabel = document.createElement('label');
+                //iceLevelLabel.textContent = 'Ice Level:';
+                const iceLevel = document.createElement('span');
+                iceLevel.textContent = item.ice_level;
+                const iceLevelDetails = document.createElement('div');
+                //iceLevelDetails.appendChild(iceLevelLabel);
+                iceLevelDetails.appendChild(iceLevel);
+
+                const sweetnessLabel = document.createElement('label');
+                //sweetnessLabel.textContent = 'Sweetness:';
+                const sweetness = document.createElement('span');
+                sweetness.textContent = item.sweetness_level;
+                const sweetnessDetails = document.createElement('div');
+                //sweetnessDetails.appendChild(sweetnessLabel);
+                sweetnessDetails.appendChild(sweetness);
+
+                const toppingsLabel = document.createElement('label');
+                //toppingsLabel.textContent = 'Toppings:';
+                const toppings = document.createElement('span');
+                toppings.textContent = item.toppings;
+                const toppingsDetails = document.createElement('div');
+                //toppingsDetails.appendChild(toppingsLabel);
+                toppingsDetails.appendChild(toppings);
+
+                // Append item name and quantity, and details list to the cart item
+                itemDetailsList.appendChild(iceLevelDetails);
+                itemDetailsList.appendChild(sweetnessDetails);
+                itemDetailsList.appendChild(toppingsDetails);
+                //itemNameAndQuantity.appendChild(itemDetailsList);
+                itemAll.appendChild(itemNameAndQuantity);
+                itemAll.appendChild(itemDetailsList);
+                cartItem.appendChild(itemAll);
+
+                // Append the cart item to the cart items list
+                cartItems.appendChild(cartItem);
+            });
+        }
+
+        // Function to retrieve a cart item by name
+        function getCartItem(itemName) {
+            return cart.find((item) => item.name === itemName);
+        }
+
+        // Function to save the cart to localStorage
+        function saveCartToLocalStorage() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        // Handle click events on the "Add to Cart" buttons
+        const addToCartButtons = document.querySelectorAll('.add-to-cart');
+        addToCartButtons.forEach((button, index) => {
+            button.addEventListener('click', function () {
+                const itemName = button.dataset.name;
+                var itemID = button.dataset.drink_id;
+                var itemIngredients = button.dataset.ingredients;
+
+                // alert("id" + itemID);
+                var itemPrice = parseFloat(button.dataset.price);
+                // Get the select element
+                var toppingInd = document.getElementById(`topping${index}`);
+                var toppingSelected = toppingInd.options[toppingInd.selectedIndex].text;
+
+                var iceInd = document.getElementById(`ice-level${index}`);
+                var iceLevel = iceInd.options[iceInd.selectedIndex].text;
+
+
+                var sweetnessInd = document.getElementById(`sweetness-level${index}`);
+                var sweetnessLevel = sweetnessInd.options[sweetnessInd.selectedIndex].text;
+
+                // Get the additional cost of topping
+                var selectedValue = toppingInd.value;
+                // console.log("the price of the additional topping is: ", selectedValue);
+                // console.log("item price before: ", itemPrice);
+                itemPrice += parseFloat(selectedValue);
+                // console.log("item price after: ", itemPrice);
+                addToCart(itemName, itemPrice, iceLevel, sweetnessLevel, toppingSelected, itemID, itemIngredients);
+            });
+        });
+
+        // Load the cart from localStorage when the page loads
+        updateCartDisplay();
+    </script>
+
+    <script src="functions.js"></script>
+
+
+<script>
+    let synth;
+    let speaking = false;
+    let paused = false;
+    let utterance;
+
+    function initializeSynthesis() {
+        synth = window.speechSynthesis;
+
+        document.getElementById('speak-button').addEventListener('click', function () {
+            startSpeaking();
+            document.getElementById('stop-button').removeAttribute('disabled');
+        });
+
+        document.getElementById('stop-button').addEventListener('click', function () {
+            stopSpeaking();
+        });
+
+        // Add event listener for pause/resume button
+        document.getElementById('pause-resume-button').addEventListener('click', function () {
+            pauseResumeSpeaking();
+        });
+    }
+
+    function pauseResumeSpeaking() {
+        if (speaking) {
+            if (paused) {
+                synth.resume();
+                paused = false;
+                console.log("Speech resumed.");
+            } else {
+                synth.pause();
+                paused = true;
+                console.log("Speech paused.");
+            }
+        }
+    }
+
+    function readEntirePage() {
+        const elements = document.body.getElementsByTagName('*');
+        let fullText = '';
+
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            if (element.tagName !== 'SCRIPT' && element.id !== 'dont-read') {
+                fullText += element.innerText + ' ' + ' ' + ' ';
+            }
+        }
+
+        return fullText.trim();
+    }
+
+    function startSpeaking() {
+        const textToSpeak = readEntirePage();
+        if (synth.speaking) {
+            synth.cancel();
+        }
+
+        utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+        // Add a callback to the onstart event
+        utterance.onstart = function () {
+            console.log("Speech started. Currently speaking: " + textToSpeak);
+        };
+
+        synth.speak(utterance);
+        speaking = true;
+
+        utterance.onend = function () {
+            speaking = false;
+            paused = false;
+            document.getElementById('stop-button').setAttribute('disabled', true);
+        };
+    }
+
+    function stopSpeaking() {
+        if (speaking) {
+            synth.cancel();
+        }
+    }
+    
+    function changeContrast() {
+        var bodyElement = document.body;
+        var modal = document.getElementById("weatherModal");
+
+        // Invert colors using the filter property
+        var invertValue = bodyElement.style.filter === 'invert(100%)' ? 'invert(0%)' : 'invert(100%)';
+        bodyElement.style.filter = invertValue;
+
+        // Invert background color
+        var bgColor = bodyElement.style.backgroundColor === 'rgb(0, 0, 0)' ? '#fff' : '#000';
+        bodyElement.style.backgroundColor = bgColor;
+
+        // Invert colors for the modal as well
+        if (modal) {
+            modal.style.filter = invertValue;
+            modal.style.backgroundColor = bgColor;
+        }
+    }
+    document.getElementById('accessibility-button').addEventListener('click', function () {
+        var dropdown = document.getElementById('accessibility-dropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+
+    function openWeatherModal() {
+        document.getElementById("weatherModal").style.display = "block";
+    }
+
+    function closeWeatherModal() {
+        document.getElementById("weatherModal").style.display = "none";
+    }
+
+    function getweather() {
+        var city = document.getElementById("modalSearch").value;
+        var units = document.getElementById("modalUnits").value;
+        var apiKey = "d2dda5a067msh26327237b9ff85dp18f58ejsn0b86f84efa1d";
+        var apiUrl = "https://weatherapi-com.p.rapidapi.com/current.json?q=" + city + "&units=" + units;
+
+        fetch(apiUrl, {
+            method: "GET",
+            headers: {
+                "X-RapidAPI-Host": "weatherapi-com.p.rapidapi.com",
+                "X-RapidAPI-Key": apiKey,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById("weatherInfo").innerHTML = "Error: " + data.error.message;
+            } else {
+                var temp, fl;
+                if (units == "f") {
+                    temp = "temp_f";
+                    fl = "feelslike_f";
+                } else {
+                    temp = "temp_c";
+                    fl = "feelslike_c";
+                }
+                document.getElementById("weatherInfo").innerHTML = "<h1>" + data.current.condition.text + "</h1>Temperature: " + data.current[temp] + "<br>Feels like: " + data.current[fl] + "<br>UV index: " + data.current.uv + "<br>Humidity: " + data.current.humidity + "<br>Cloud cover: " + data.current.cloud;
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }
+
+    // Store original font sizes
+    var originalFontSizes = {};
+
+    // Get original font sizes when the page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            originalFontSizes[element] = window.getComputedStyle(element, null).getPropertyValue('font-size');
+        });
+    });
+
+    function revertToNormal() {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            element.style.fontSize = originalFontSizes[element];
+        });
+    }
+
+    function enlargeAllText() {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            var currentSize = window.getComputedStyle(element, null).getPropertyValue('font-size');
+            var newSize = (parseFloat(currentSize) * 1.2) + 'px'; // Increase font size by 50%
+            element.style.fontSize = newSize;
+        });
+    }
+
+    function reduceSizeAllText() {
+        var elements = document.querySelectorAll('*');
+        elements.forEach(function (element) {
+            var currentSize = window.getComputedStyle(element, null).getPropertyValue('font-size');
+            var newSize = (parseFloat(currentSize) * 0.833333) + 'px'; // Decrease font size 
+            element.style.fontSize = newSize;
+        });
+    }
+
+    initializeSynthesis();
+</script>
+
+<div id="weatherModal" class="modal">
+<div class="modal-content">
+    <span class="close" onclick="closeWeatherModal()">&times;</span>
+    <h2>Weather Information</h2>
+    <label for="modalSearch">City:</label>
+    <input placeholder="City" id="modalSearch">
+    <select id="modalUnits">
+        <option value="f">Fahrenheit</option>
+        <option value="c">Celsius</option>
+    </select>
+    <button onclick="getweather()">Get Weather!</button>
+    <div id="weatherInfo"></div>
+</div>
+</div>
+
+</body>
+</html>
