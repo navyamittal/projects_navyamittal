@@ -1,0 +1,25 @@
+# Python-related
+*.pyc
+__pycache__/
+.env
+
+# Virtual environment
+venv/
+ENV/
+env/
+
+# IDE / Editor specific
+.idea/
+.vscode/
+*.iml
+*.ipynb_checkpoints/
+.DS_Store
+
+# postgres credentials
+.env
+
+frontend/build/
+frontend/package-lock.json
+frontend/build/*
+
+test_images/*

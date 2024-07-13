@@ -1,0 +1,7 @@
+.complete-profile-contents{
+    padding: 5% 10%;
+    overflow: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;
+    width:100%;
+}

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: feed.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: feed.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from 'react';
+import { useSwipeable } from 'react-swipeable';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faThumbsUp, faThumbsDown, faTimes, faArrowRight, faBirthdayCake, faGraduationCap, faVenusMars, faSpinner, faUserCheck  } from '@fortawesome/free-solid-svg-icons';
+import './feed.css';
+import axios from 'axios';
+import MatchedPopup from '../components/MatchedPopup';
+import Typewriter from 'react-typewriter-effect';
+import '../components/MatchedPopup.css'
+
+/**
+ * Frontend component for main feed.
+ * @component
+ */
+function Feed() {
+    const [profiles, setProfiles] = useState([]);
+    const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [currentUser, setCurrentUser] = useState({});
+    const [showPopup, setShowPopup] = useState(false);
+    const [disableSwipe, setDisableSwipe] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [dotIndex, setDotIndex] = useState(0);
+    const [isActive, setIsActive] = useState(true);
+
+    useEffect(() => {
+        fetchActiveStatus();
+    }, []);
+
+    useEffect(() => {
+        // Fetch user IDs when the component mounts
+        axios.get('/getfeed')
+            .then(response => {
+                const user_ids = response.data.user_ids;
+                // Set the list of user IDs to state
+                setProfiles(user_ids);
+                setLoading(false); // Mark loading as false after fetching data
+            })
+            .catch(error => {
+                console.error('Error fetching user feed:', error);
+                setLoading(false); // Mark loading as false in case of error
+            });
+    }, []);
+
+    useEffect(() => {
+        // Check if profiles have been set and not empty
+        if (profiles.length > 0) {
+            // Fetch profile information for the first user ID
+            fetchProfileInfo(profiles[0]);
+        }
+    }, [profiles]);
+
+    /**
+     * Moves to the next image.
+     */
+    const handleNextImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % currentUser.photos.length);
+    };
+
+    /**
+     * Moves to the previous image.
+     */
+    const handlePrevImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex - 1 + currentUser.photos.length) % currentUser.photos.length);
+    };
+
+
+    useEffect(() => {
+        // Disable swipe when the popup is shown
+        if (showPopup) {
+            setDisableSwipe(true);
+        } else {
+            setDisableSwipe(false);
+        }
+    }, [showPopup]);
+
+    /**
+     * Handles liking a profile.
+     */
+    const handleLike = () => {
+        const likedUserId = profiles[currentProfileIndex];
+        //let navigate = useNavigate();
+        axios.post('/like', { liked_user_id: likedUserId })
+        .then(response => {
+            if (response.data.match) {
+                setShowPopup(true);
+            }
+            
+            showNextProfile();
+        })
+        .catch(error => {
+            console.error('Error liking profile:', error);
+            showNextProfile();
+        });
+    };
+
+     /**
+     * Handles disliking a profile.
+     */
+    const handleDislike = () => {
+        const likedUserId = profiles[currentProfileIndex];
+
+        axios.post('/dislike', { liked_user_id: likedUserId })
+        .then(response => {
+            showNextProfile();
+        })
+        .catch(error => {
+            console.error('Error disliking profile:', error);
+            showNextProfile();
+        });
+    };
+
+    /**
+     * Fetches profile information for the given user ID.
+     * @param {string} userId - The ID of the user.
+     */
+    const fetchProfileInfo = (userId) => {
+        // Fetch profile information for the given user ID
+        axios.get(`/userinfo?user_id=${userId}`)
+            .then(response => {
+                // Set the current user with the fetched profile data
+                setCurrentUser(response.data);
+            })
+            .catch(error => {
+                console.error('Error fetching profile information:', error);
+            });
+    };
+
+    /**
+     * Shows the next profile.
+     */
+    const showNextProfile = () => {
+        // Increment the profile index to show the next profile
+        const nextIndex = currentProfileIndex + 1;
+        if (nextIndex &lt; profiles.length) {
+            setCurrentProfileIndex(nextIndex);
+            // Fetch and set the profile info for the next user
+            fetchProfileInfo(profiles[nextIndex]);
+            setCurrentImageIndex(0);
+        } else {
+            setCurrentProfileIndex(nextIndex);
+        }
+    };
+
+    /**
+     * Handles swipe actions.
+     */
+    const swipeHandlers = useSwipeable({
+        onSwipedLeft: handleDislike,
+        onSwipedRight: handleLike,
+        trackMouse: true
+    });
+
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setDotIndex((prevIndex) => (prevIndex &lt; 3 ? prevIndex + 1 : 0));
+        }, 500);
+
+        return () => clearInterval(timer);
+    }, []);
+
+
+    /**
+     * Fetches the active status from the backend.
+     */
+    const fetchActiveStatus = async () => {
+        await axios.get('/settings/check_active_status')
+            .then(response => {
+                setIsActive(response.data);
+            })
+            .catch(error => {
+                console.error('Error fetching active status:', error);
+            });
+    }
+
+    if (loading) {
+        return( 
+            &lt;div className='feedcontainer'>
+                &lt;div className='noprofiles'>
+                    &lt;h1>
+                        &lt;FontAwesomeIcon icon={faSpinner} spin /> Loading{Array(dotIndex + 1).join('.')}
+                    &lt;/h1>
+                &lt;/div>
+            &lt;/div>
+        );
+    }
+
+    if (!isActive) {
+        return (
+            &lt;div className="feedcontainer">
+                &lt;div className='noprofiles'>
+                    &lt;h1>Your account is currently deactivated. To regain access to your feed, reactivate your account in the Account page!&lt;/h1>
+                &lt;/div>
+            &lt;/div>
+        )
+    }
+
+    return (
+        &lt;div className="feedcontainer" {...(disableSwipe ? {} : swipeHandlers)}>
+            {profiles &amp;&amp; currentProfileIndex &lt; profiles.length ? (
+                &lt;>
+                    &lt;div className="profilecontainer">
+                        &lt;div className="buttoncol-dislike">
+                            &lt;button
+                                type="button"
+                                className="btn dislikebutton shared_like rounded-circle btn-lg"
+                                onClick={handleDislike}
+                            >
+                                &lt;FontAwesomeIcon icon={faTimes} style={{ color: 'white' }} />
+                            &lt;/button>
+                        &lt;/div>
+                        &lt;div className="profile-info">
+                            &lt;h2 className='mt-3'>{currentUser.first_name}&lt;/h2>
+                            &lt;div className="text-center">
+                                &lt;div className="carousel slide mb-2 rounded-5" data-ride="carousel">
+                                    &lt;div className="carousel-inner rounded-5">
+                                    {currentUser &amp;&amp; Array.isArray(currentUser.photos) &amp;&amp; currentUser.photos.map((imageUrl, index) => (
+                                        &lt;div className={`carousel-item ${index === currentImageIndex ? 'active' : ''}`}  style={{ width: '100%', height: '500px'}} key={index}>
+                                            &lt;img src={imageUrl} className="d-block" style={{ height: '100%', width: '100%', objectFit: 'fill' }} alt={`Image ${index}`} />
+                                        &lt;/div>
+                                    ))}
+
+                                    &lt;/div>
+                                    &lt;a className="carousel-control-prev" role="button" data-slide="prev" onClick={handlePrevImage}>
+                                        &lt;span className="carousel-control-prev-icon" aria-hidden="true">&lt;/span>
+                                        &lt;span className="sr-only">Previous&lt;/span>
+                                    &lt;/a>
+                                    &lt;a className="carousel-control-next" role="button" data-slide="next" onClick={handleNextImage}>
+                                        &lt;span className="carousel-control-next-icon" aria-hidden="true">&lt;/span>
+                                        &lt;span className="sr-only">Next&lt;/span>
+                                    &lt;/a>
+                                &lt;/div>
+                            &lt;/div>
+                            &lt;div className="row justify-content-around mb-1">
+                                {currentUser.verified === true &amp;&amp; (
+                                    &lt;div className="col-md-4 text-center">
+                                        &lt;FontAwesomeIcon icon={faUserCheck} style={{ fontSize: '1.5rem' }} />
+                                        &lt;p className="mt-1">Verified&lt;/p>
+                                    &lt;/div>
+                                    )
+                                }
+                                &lt;div className="col-md-4 text-center">
+                                    &lt;FontAwesomeIcon icon={faBirthdayCake} style={{ fontSize: '1.5rem' }} />
+                                    &lt;p className="mt-1">{currentUser.age}&lt;/p>
+                                &lt;/div>
+                                &lt;div className="col-md-4 text-center">
+                                    &lt;FontAwesomeIcon icon={faGraduationCap} style={{ fontSize: '1.5rem' }} />
+                                    &lt;p className="mt-1">{currentUser.major}&lt;/p>
+                                &lt;/div>
+                                &lt;div className="col-md-4 text-center">
+                                    &lt;FontAwesomeIcon icon={faVenusMars} style={{ fontSize: '1.5rem' }} />
+                                    &lt;p className="mt-1">{currentUser.gender}&lt;/p>
+                                &lt;/div>
+                            &lt;/div>
+                            &lt;div className="card shadow rounded-5 mb-4">
+                                &lt;div className="row no-gutters">
+                                    &lt;div className="col-md-12">
+                                        &lt;div className="card-body">
+                                            &lt;h5 className="card-title">About Me: &lt;/h5>
+                                            &lt;p className="card-text">{currentUser.bio}&lt;/p>
+                                        &lt;/div>
+                                    &lt;/div>
+                                &lt;/div>
+                            &lt;/div>
+                            {currentUser &amp;&amp; currentUser.categories &amp;&amp; Object.entries(currentUser.categories).map(([category, questions], categoryIndex) => (
+                                &lt;div key={categoryIndex}>
+                                    &lt;h4 className="text-center mb-2">{category}&lt;/h4>
+                                    &lt;div className="card shadow rounded-5 mb-4">
+                                        &lt;div className="row no-gutters">
+                                            &lt;div className="col-md-12">
+                                                &lt;div className="card-body">
+                                                    {Object.entries(questions).map(([question, answer], index) => (
+                                                        &lt;div key={index}>
+                                                            &lt;p className="card-subtitle text-muted">{question}&lt;/p>
+                                                            {/* Check if the answer is an array */}
+                                                            {Array.isArray(answer) ? (
+                                                                // If it is, map over the array and display each item on its own line
+                                                                &lt;div>
+                                                                    {answer.map((item, itemIndex) => (
+                                                                        &lt;h6 key={itemIndex} className={`card-text ${itemIndex === answer.length - 1 ? 'mb-3' : 'mb-1'}`}>
+                                                                            {item}
+                                                                        &lt;/h6>
+                                                                    ))}
+                                                                &lt;/div>
+                                                            ) : (
+                                                                // If it's not an array, display the answer as before
+                                                                &lt;h6 className="card-text mb-3">{answer}&lt;/h6>
+                                                            )}
+                                                        &lt;/div>
+                                                    ))}
+                                                &lt;/div>
+                                            &lt;/div>
+                                        &lt;/div>
+                                    &lt;/div>
+                                &lt;/div>
+                            ))}
+                        &lt;/div>
+                        &lt;div className="buttoncol-like">
+                            &lt;button
+                                type="button"
+                                className="btn likebutton shared_like rounded-circle btn-lg"
+                                onClick={handleLike}
+                            >
+                                &lt;FontAwesomeIcon icon={faThumbsUp} style={{ color: 'white' }} />
+                            &lt;/button>
+                        &lt;/div>
+                    &lt;/div>
+                &lt;/>
+            ) : (
+                &lt;div className='noprofiles'>
+                    &lt;h1>No more profiles to show. Please come back later and try again!&lt;/h1>
+                &lt;/div>
+            )}
+            {showPopup &amp;&amp; (
+                        &lt;MatchedPopup trigger={showPopup} setTrigger={setShowPopup}>
+                            &lt;div className="popup-content">
+                                &lt;h1 style={{ fontWeight: 'bold', fontSize: '100px', marginTop: '100px', textAlign: 'center' }}>
+                                    Congratulations!
+                                    &lt;div className="type-writer-container">
+                                        &lt;Typewriter
+                                            text="It's a MATCH!!!"
+                                            delay={100}
+                                            className="type-writer-text"
+                                        />
+                                    &lt;/div>
+                                &lt;/h1>
+                            &lt;/div>
+                        &lt;/MatchedPopup>
+            )}
+        &lt;/div>
+    );
+}
+
+export {Feed};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AddCategories">AddCategories</a></li><li><a href="global.html#CompleteProfile">CompleteProfile</a></li><li><a href="global.html#DeleteCategories">DeleteCategories</a></li><li><a href="global.html#EditProfile">EditProfile</a></li><li><a href="global.html#Feed">Feed</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Profile">Profile</a></li><li><a href="global.html#Questionnaire">Questionnaire</a></li><li><a href="global.html#Questionnaire2">Questionnaire2</a></li><li><a href="global.html#Settings">Settings</a></li><li><a href="global.html#Signup">Signup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed May 01 2024 11:21:21 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

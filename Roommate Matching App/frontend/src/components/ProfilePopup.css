@@ -1,0 +1,106 @@
+.profile-popup {
+    background-color: rgba(0, 0, 0, 0.5); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001 !important; 
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.profile-pop-up-height{
+    height: 75vh;
+}
+
+.profile-popup-content {
+    background-color: white;
+    padding: 20px;
+    height: 60%; /* Keep a fixed height */
+    width: 90%;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
+    z-index: 1001; 
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    overflow-y: auto; /* Allow content to scroll if needed */
+}
+
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+}
+
+.profile-popup-content::-webkit-scrollbar {
+    display: none;
+}
+
+.profile-popup-content {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.row.row-cols-1.row-cols-md-3.g-4 {
+    margin-top: 10%;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.unmatch {
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    font-size: 20px;
+    font-weight: 500;
+    background-color: maroon;
+    color: white;
+    width: 50%;
+    margin-top: 20px; /* Adjust top margin as needed */
+}
+
+.message{
+    background-color: white;
+    color: maroon;
+}
+
+.chat-div{
+    position: relative;
+    width: 50%;
+    max-width: calc(50% - 48px);
+    max-height: 100% !important;
+    background-color: white;
+    float: right;
+    min-width: 500px;
+}
+.chat-div {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+.profile-info-popup{
+    overflow-y: auto;
+    width: 50%; /* Adjust as needed */
+    padding: 2%; /* Add some padding for aesthetics */
+    float:left;
+    max-height: 70vh;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.ce-feed-container, .ce-chat-engine-feed{
+    max-height: 75vh !important;
+    height: 75vh !important;
+  }
+

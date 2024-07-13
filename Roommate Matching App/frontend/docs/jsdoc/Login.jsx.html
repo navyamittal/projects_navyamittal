@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Login.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Login.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import './Auth.css';
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import axios from 'axios';
+import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
+import { useEffect } from 'react';
+import { gapi } from 'gapi-script';
+import {jwtDecode} from 'jwt-decode';
+
+/**
+ * Frontend component for logging in to the application.
+ * @component
+ */
+function Login() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loginMessage, setLoginMessage] = useState('');
+    const navigate = useNavigate();
+    const clientId = process.env.REACT_APP_OAUTH_CLIENT_ID;
+
+    // useEffect(() => {
+    //     function start() {
+    //         gapi.client.init({
+    //             clientId: clientId,
+    //             scope: ""
+    //         });
+    //     };
+    //     gapi.load('client:auth2', start);
+    // }, []);
+    
+    /**
+     * Handles form submission for user login.
+     * @param {Event} e - The submit event.
+     * @returns {Promise&lt;void>}
+     */ 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('/login', { email, password });
+
+            const profileRes = await axios.get('/profile_status');
+            const profileStatus = profileRes.data.profile_status;
+            
+            if (profileStatus) {
+                // Redirect to complete profile page if profile is incomplete
+                navigate('/complete_profile');
+            } else {
+                // Redirect to questionnaire if profile is complete
+                navigate('/feed');
+            }
+
+        } catch (error) {
+            setLoginMessage('Invalid email or password');
+        }
+    };
+
+    /**
+     * Handles successful Google authentication response.
+     * @param {Object} response - The Google authentication response object.
+     * @returns {Promise&lt;void>}
+     */
+    const onSuccess = async (response) => {
+        try {
+            // Send Google authentication response to backend
+            const accessToken = response.credential;
+            const decodedToken = jwtDecode(accessToken);
+            const { given_name, email, picture } = decodedToken;
+            const res = await axios.post('/gauthorize', {
+                given_name: given_name,
+                email: email,
+                picture: picture
+            });
+            
+            if (res.data.success) {
+                // Check profile status after successful authentication
+                const profileRes = await axios.get('/profile_status');
+                const profileStatus = profileRes.data.profile_status;
+                
+                if (profileStatus) {
+                    // Redirect to complete profile page if profile is incomplete
+                    navigate('/complete_profile');
+                } else {
+                    // Redirect to questionnaire if profile is complete
+                    navigate('/feed');
+                }
+            } else {
+                setLoginMessage('Failed to log in with Google');
+            }
+        } catch (error) {
+            console.error('Error logging in with Google:', error);
+            setLoginMessage('Failed to log in with Google');
+        }
+    };
+
+    /**
+     * Handles failure of Google authentication.
+     * @param {Object} res - The failure response object.
+     */
+    const onFailure = (res) => {
+        console.log("fail", res)
+    }
+
+
+    return (
+        &lt;GoogleOAuthProvider clientId={clientId}>
+            &lt;div className='auth-background'>
+                &lt;div className='auth-overlay'>
+                    &lt;div className='auth-container'>
+                        &lt;Link to="/" className="btn-close exit" aria-label="Close">&lt;/Link>
+                        &lt;div className='auth-contents'>
+                            &lt;form onSubmit={handleSubmit}>
+                                &lt;h2 className='welcome-text'>Welcome to Aggie's House!&lt;/h2>
+                                {loginMessage &amp;&amp; &lt;div className="alert alert-danger">{loginMessage}&lt;/div>}
+                                &lt;div className='mb-3 mt-5'>
+                                    &lt;label>Email&lt;/label>
+                                    &lt;input type='email' placeholder='Email' className='form-control' value={email} onChange={(e) => setEmail(e.target.value)} />
+                                &lt;/div>
+                                &lt;div className='mb-4'>
+                                    &lt;label>Password&lt;/label>
+                                    &lt;input type='password' placeholder='Password' className='form-control' value={password} onChange={(e) => setPassword(e.target.value)} />
+                                &lt;/div>
+                                &lt;div className='mb-3'>
+                                    &lt;button type='submit' className='btn btn-maroon'>Log in&lt;/button>
+                                &lt;/div>
+                            &lt;/form>
+                            &lt;p className='or'>OR&lt;/p>
+                            &lt;div className='mb-3-google-login'>
+                                &lt;GoogleLogin
+                                    onSuccess={onSuccess}
+                                    onError={onFailure}
+                                    cookiePolicy={'single_host_origin'}
+                                />
+                            &lt;/div>
+                            &lt;p className='auth-redirect'>Don't have an account yet? &lt;Link to="/signup">Sign up&lt;/Link>&lt;/p>
+                        &lt;/div>
+                    &lt;/div>
+                &lt;/div>
+            &lt;/div>
+        &lt;/GoogleOAuthProvider>
+    );
+}
+
+export {Login};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AddCategories">AddCategories</a></li><li><a href="global.html#CompleteProfile">CompleteProfile</a></li><li><a href="global.html#DeleteCategories">DeleteCategories</a></li><li><a href="global.html#EditProfile">EditProfile</a></li><li><a href="global.html#Feed">Feed</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Profile">Profile</a></li><li><a href="global.html#Questionnaire">Questionnaire</a></li><li><a href="global.html#Questionnaire2">Questionnaire2</a></li><li><a href="global.html#Settings">Settings</a></li><li><a href="global.html#Signup">Signup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed May 01 2024 11:21:21 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

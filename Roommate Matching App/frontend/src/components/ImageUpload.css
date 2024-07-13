@@ -1,0 +1,105 @@
+.slots-container .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around; /* Center items with equal space between them */
+}
+
+.upload-placeholder,
+.upload-image-container {
+    height: 20vh; /* Adjust based on your container's height */
+    background-color: #500000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.upload-placeholder:hover {
+    background-color: rgba(80, 0, 0, 0.7);
+}
+.upload-placeholder svg {
+    color: white;
+    width: 2em; /* Adjust the width of the icon */
+    height: 2em; /* Adjust the height of the icon */
+}
+
+.remove-icon svg {
+    width: 1.5em; /* Adjust the width of the icon */
+    height: 1.5em; /* Adjust the height of the icon */
+}
+
+.upload-image-container img{
+    width: 100%; /* Ensure the image or icon does not exceed the container width */
+    height: 100%; /* Ensure the image or icon does not exceed the container height */
+}
+
+.upload-placeholder svg {
+    color: white;
+}
+
+.ribbon {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    background-color: black;
+    z-index: 1; /* Ensure the ribbon is above the image */
+    color: white;
+    font-size: 25px;
+    text-align: center;
+}
+
+.remove-icon {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: pointer;
+    color: white;
+    font-size: 30px;
+}
+
+.remove-icon:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.submit-button {
+    font-size: 1.5rem; /* Adjust as needed */
+    padding: 1rem 2rem;
+}
+
+.vertical-center {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center horizontally */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    z-index: 9999;
+}
+
+
+.slots-container {
+    width: 75vw;
+    height: 75vh;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.pop-up-container {
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    width: 75vw;
+    background-color: white;
+    z-index: 10000;
+    padding: 20px;
+}
+

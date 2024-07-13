@@ -1,0 +1,130 @@
+.auth-background {
+    height: 100vh;
+    width: 100vw;
+    background-color: #500000;
+    background: url('../assets/tamu-campus-aerial-3.jpeg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: fixed;
+}
+
+.auth-overlay {
+    background-color: rgba(80, 0, 0, 0.7);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.auth-container {
+    width: 500px;
+    border-radius: 25px;
+    background-color: white;
+}
+
+.exit {
+    float: right;
+    margin-right: 13px;
+    margin-top: 15px;
+}
+
+.auth-contents {
+    padding: 3% 10%;
+}
+
+.auth-contents-signup {
+    padding: 3% 10%;
+    overflow: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;
+    width:100%;
+}
+
+.auth-contents-signup::-webkit-scrollbar {
+    display: none;
+  }
+  
+
+.auth-contents input {
+    border-radius: 15px;
+}
+
+.auth-contents label {
+    margin-left: 8px;
+}
+
+.welcome-text {
+    text-align: center;
+    padding-top: 10%;
+}
+
+.or {
+    text-align: center;
+    color: #5c5b58;
+    font-weight: bold;
+}
+.auth-redirect {
+    text-align: center;
+}
+
+.btn-maroon {
+    background-color: #500000;
+    color: white;
+    width: 100%;
+    border-radius: 25px;
+    font-weight: 500;
+}
+
+/* temp to make easier to see */
+.btn-maroon:hover {
+    background-color: black;
+    color: white;
+}
+
+/* temporary home page stuff */
+
+.home-title {
+    font-family: "Montserrat", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-style: normal;
+    font-size:100px;
+    color: white;
+    margin-top: 8%;
+}
+
+.btn-div-home {
+    margin: 0 30%;
+}
+
+.btn-home {
+    background-color: white;
+    color: #500000;
+    width: 100%;
+    border-radius: 25px;
+    font-weight: 500px;
+    margin-bottom: 5%;
+}
+
+.btn-home:hover {
+    background-color: black;
+    color: white;
+}
+
+.mb-3-google-login,
+.mb-5-tamu-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%; 
+    margin-bottom: 5%;
+}
+
+.mb-3-google-login input,
+.mb-5-tamu-login input {
+    width: 80%; 
+}

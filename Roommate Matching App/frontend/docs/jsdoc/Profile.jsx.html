@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Profile.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Profile.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBirthdayCake, faGraduationCap, faVenusMars, faPen, faCirclePlus, faCircleXmark, faPowerOff, faMoon, faTrash, faPlus, faUserCheck, faImage} from '@fortawesome/free-solid-svg-icons';
+import './feed.css';
+import './Settings.css';
+import { useNavigate } from 'react-router-dom';
+import ImageUpload from '../components/ImageUpload';
+
+import axios from 'axios';
+
+/**
+ * Frontend component for viewing profile under the Account page.
+ * @component
+ * @param {function} toggleEditView - Function to toggle Account page view between viewing and editing.
+ * @param {function} toggleCatView - Function to toggle Account page view between adding and deleting categories or viewing profile.
+ */
+function Profile({toggleEditView, toggleCatView}) {
+    const [userId, setUserId] = useState(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [currentUser, setCurrentUser] = useState({});
+    const [isActive, setIsActive] = useState(null);
+    const [isVisible, setIsVisible] = useState(false);
+    const [imagesUploaded, setImagesUploaded] = useState(true);
+    const [formSubmitted, setFormSubmitted] = useState(false);
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        fetchUserId(); 
+        fetchActiveStatus();
+    }, []);
+
+    useEffect(() => {
+        if (userId !== null) {
+            fetchProfileInfo(userId);
+        }
+    }, [userId]);
+
+    /**
+     * Fetches the user ID from the backend.
+     */
+    const fetchUserId = async () => {
+        await axios.get(`/get_user_id`)
+            .then(response => {
+                setUserId(response.data.user_id);
+            })
+            .catch(error => {
+                console.error('Error fetching user ID:', error);
+            });
+    };
+
+    /**
+     * Fetches profile information for a given user ID from the backend.
+     * @param {string} userId - The ID of the user.
+     */
+    const fetchProfileInfo = async (userId) => {
+        // Fetch profile information for the given user ID
+        await axios.get(`/userinfo?user_id=${userId}`)
+            .then(response => {
+                // Set the current user with the fetched profile data
+                setCurrentUser(response.data);
+            })
+            .catch(error => {
+                console.error('Error fetching profile information:', error);
+            });
+    };
+
+    /**
+     * Fetches the active status of the user from the backend.
+     */
+    const fetchActiveStatus = async () => {
+        await axios.get('/settings/check_active_status')
+            .then(response => {
+                setIsActive(response.data);
+            })
+            .catch(error => {
+                console.error('Error fetching active status:', error);
+            });
+    }
+
+    /**
+     * Handles the change in image to the next one in the carousel.
+     */
+    const handleNextImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % currentUser.photos.length);
+    };
+
+    /**
+     * Handles the change in image to the previous one in the carousel.
+     */
+    const handlePrevImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex - 1 + currentUser.photos.length) % currentUser.photos.length);
+    };
+
+    /**
+     * Handles the change in account active status.
+     */
+    const handleStatusChange = async () => {
+        try {
+            await axios.post('/settings/change_active_status');
+            setIsActive(!isActive);
+            console.log('Account status changed successfully');
+        } catch (error) {
+            console.error('Error changing account status:', error);
+        }
+    }
+
+    /**
+     * Handles the deletion of the user's account.
+     */
+    const handleDelete = async () => {
+        try {
+            await axios.post('/settings/delete_account');
+            console.log('User deleted successfully');
+        } catch (error) {
+            console.error('Error deleting user:', error);
+        }
+    };
+
+    const handleShowImageUpload = () => {
+        setIsVisible(true);
+        document.body.classList.add('popup-open');
+    };
+
+    return (
+        &lt;div className="feedcontainer" style={{marginTop:'0'}}>
+            &lt;>
+            &lt;h2 className='settings-header'>View/Edit Profile&lt;/h2>
+                &lt;div className="profilecontainer" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                    &lt;div className="profile-info">
+                        &lt;h2 className='mt-3'>{currentUser.first_name} {currentUser.last_name}&lt;/h2>
+                        &lt;div className="text-center">
+                            &lt;div className="carousel slide mb-2 rounded-5" data-ride="carousel">
+                                &lt;div className="carousel-inner rounded-5">
+                                {currentUser &amp;&amp; Array.isArray(currentUser.photos) &amp;&amp; currentUser.photos.map((imageUrl, index) => (
+                                    &lt;div className={`carousel-item ${index === currentImageIndex ? 'active' : ''}`} key={index}>
+                                        &lt;img src={imageUrl} className="d-block w-100" style={{ height: '500px' }} alt={`Image ${index}`} />
+                                    &lt;/div>
+                                ))}
+
+                                &lt;/div>
+                                &lt;a className="carousel-control-prev" role="button" data-slide="prev" onClick={handlePrevImage}>
+                                    &lt;span className="carousel-control-prev-icon" aria-hidden="true">&lt;/span>
+                                    &lt;span className="sr-only">Previous&lt;/span>
+                                &lt;/a>
+                                &lt;a className="carousel-control-next" role="button" data-slide="next" onClick={handleNextImage}>
+                                    &lt;span className="carousel-control-next-icon" aria-hidden="true">&lt;/span>
+                                    &lt;span className="sr-only">Next&lt;/span>
+                                &lt;/a>
+                            &lt;/div>
+                            &lt;button className="upload-image-button" onClick={handleShowImageUpload}>
+                                &lt;FontAwesomeIcon icon={faImage} className="icon" />
+                                Edit Images
+                            &lt;/button>
+                            {isVisible &amp;&amp; &lt;ImageUpload isVisible={isVisible} setIsVisible={setIsVisible} imagesUploaded={imagesUploaded} setImagesUploaded={setImagesUploaded} setFormSubmitted={setFormSubmitted} formSubmitted={formSubmitted} />}
+                        &lt;/div>
+                        &lt;div className="row justify-content-around mb-1">
+                            {currentUser.verified === true &amp;&amp; (
+                                &lt;div className="col-md-4 text-center">
+                                    &lt;FontAwesomeIcon icon={faUserCheck} style={{ fontSize: '1.5rem' }} />
+                                    &lt;p className="mt-1">Verified&lt;/p>
+                                &lt;/div>
+                                )
+                            }
+                            &lt;div className="col-md-4 text-center">
+                                &lt;FontAwesomeIcon icon={faBirthdayCake} style={{ fontSize: '1.5rem' }} />
+                                &lt;p className="mt-1">{currentUser.age}&lt;/p>
+                            &lt;/div>
+                            &lt;div className="col-md-4 text-center">
+                                &lt;FontAwesomeIcon icon={faGraduationCap} style={{ fontSize: '1.5rem' }} />
+                                &lt;p className="mt-1">{currentUser.major}&lt;/p>
+                            &lt;/div>
+                            &lt;div className="col-md-4 text-center">
+                                &lt;FontAwesomeIcon icon={faVenusMars} style={{ fontSize: '1.5rem' }} />
+                                &lt;p className="mt-1">{currentUser.gender}&lt;/p>
+                            &lt;/div>
+                        &lt;/div>
+                        &lt;div className="card shadow rounded-5 mb-4">
+                            &lt;div className="row no-gutters">
+                                &lt;div className="col-md-12">
+                                    &lt;div className="card-body">
+                                        &lt;h5 className="card-title">About Me: &lt;/h5>
+                                        &lt;p className="card-text">{currentUser.bio}&lt;/p>
+                                    &lt;/div>
+                                &lt;/div>
+                            &lt;/div>
+                        &lt;/div>
+                        {currentUser &amp;&amp; currentUser.categories &amp;&amp; Object.entries(currentUser.categories).map(([category, questions], categoryIndex) => (
+                            &lt;div key={categoryIndex}>
+                                &lt;h4 className="text-center mb-2">{category}&lt;/h4>
+                                &lt;div className="card shadow rounded-5 mb-4">
+                                    &lt;div className="row no-gutters">
+                                        &lt;div className="col-md-12 edit-card">
+                                            &lt;div className="card-body">
+                                                {Object.entries(questions).map(([question, answer], index) => (
+                                                    &lt;div key={index}>
+                                                        &lt;p className="card-subtitle text-muted">{question}&lt;/p>
+                                                        {/* Check if the answer is an array */}
+                                                        {Array.isArray(answer) ? (
+                                                            // If it is, map over the array and display each item on its own line
+                                                            &lt;div>
+                                                                {answer.map((item, itemIndex) => (
+                                                                    &lt;h6 key={itemIndex} className={`card-text ${itemIndex === answer.length - 1 ? 'mb-3' : 'mb-1'}`}>
+                                                                        {item}
+                                                                    &lt;/h6>
+                                                                ))}
+                                                            &lt;/div>
+                                                        ) : (
+                                                            // If it's not an array, display the answer as before
+                                                            &lt;h6 className="card-text mb-3">{answer}&lt;/h6>
+                                                        )}
+                                                    &lt;/div>
+                                                ))}
+                                            &lt;/div>
+                                            &lt;div className="edit-btn-div">
+                                                &lt;button className='btn edit-btn' onClick={() => toggleEditView(category)}>
+                                                    &lt;FontAwesomeIcon icon={faPen} style={{ color: 'white' }} />
+                                                &lt;/button>
+                                            &lt;/div>
+                                        &lt;/div>
+                                    &lt;/div>
+                                &lt;/div>
+                            &lt;/div>
+                        ))}
+                        &lt;div className='category-btn-div'>
+                            &lt;button className='btn categories-btn' onClick={() => toggleCatView(1)}>
+                            &lt;FontAwesomeIcon icon={faPlus} /> Add Categories
+                            &lt;/button>
+                            &lt;button className='btn categories-btn' onClick={() => toggleCatView(2)}>
+                            &lt;FontAwesomeIcon icon={faTrash} />  Delete Categories
+                            &lt;/button>
+                        &lt;/div>
+                        &lt;hr className='settings-hr'>&lt;/hr>
+                        &lt;h3 className='settings-header'>Account Settings&lt;/h3>
+                        { isActive ? (
+                            &lt;h4 className="text-center mb-2">Deactivate Account&lt;/h4>
+                            ) : (
+                            &lt;h4 className="text-center mb-2">Reactivate Account&lt;/h4>
+                        )}
+                        &lt;div className="card shadow rounded-5 mb-4">
+                            &lt;div className="row no-gutters">
+                                &lt;div className="col-md-12 card-parent">
+                                    &lt;div className="card-body">
+                                        { isActive ? (
+                                            &lt;div>
+                                                &lt;p className="card-text">
+                                                    If you are satisfied with your current matches and do not want your profile to be shown in other users' feeds, you can temporarily deactivate your account.  
+                                                    You will retain access to your current matches and chats, but you will lose access to your feed until you choose to reactivate your account.
+                                                &lt;/p>
+                                                &lt;div className='category-btn-div'>
+                                                    &lt;button className='btn categories-btn' onClick={() => handleStatusChange()}>
+                                                    &lt;FontAwesomeIcon icon={faMoon} /> Deactivate Account
+                                                    &lt;/button>
+                                                &lt;/div>
+                                            &lt;/div>
+                                        ) : (
+                                            &lt;div>
+                                                &lt;p className="card-text">
+                                                    Your account is currently deactivated. If you would like to form new matches, you can reactivate your account below: this will give you access to your feed
+                                                    and your profile will be shown to other users again.
+                                                &lt;/p>
+                                                &lt;div className='category-btn-div'>
+                                                    &lt;button className='btn categories-btn' onClick={() => handleStatusChange()}>
+                                                    &lt;FontAwesomeIcon icon={faPowerOff} /> Reactivate Account
+                                                    &lt;/button>
+                                                &lt;/div>
+                                            &lt;/div>
+                                        )}
+                                    &lt;/div>
+                                &lt;/div>
+                            &lt;/div>
+                        &lt;/div>
+                        &lt;h4 className="text-center mb-2">Delete Account&lt;/h4>
+                        &lt;div className="card shadow rounded-5 mb-4">
+                            &lt;div className="row no-gutters">
+                                &lt;div className="col-md-12 card-parent">
+                                    &lt;div className="card-body">
+                                        &lt;p className="card-text">
+                                            This will &lt;strong>permanently&lt;/strong> delete your account and all associated information, including your questionnaire responses, likes, and matches. 
+                                            If you are sure you would like to proceed, click the button below. Your account will be deleted and you will be redirected to the home page.
+                                        &lt;/p>
+                                        &lt;div className='category-btn-div'>
+                                            &lt;button className='btn categories-btn' onClick={() => {handleDelete(); navigate('/')}}>
+                                            &lt;FontAwesomeIcon icon={faTrash} /> Delete Account
+                                            &lt;/button>
+                                        &lt;/div>
+                                    &lt;/div>
+                                &lt;/div>
+                            &lt;/div>
+                        &lt;/div>
+                    &lt;/div>
+                &lt;/div>                
+            &lt;/>
+
+            &lt;style jsx>{`
+                .type-writer-container {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100%;
+                    margin-top: 50px;
+                    font-size: 800px;
+                    fontWeight: 'bold'
+                }
+                .type-writer-text {
+                    font-size: 100px; /* Adjust the font size as needed */
+                    color: rgb(0,0,0); /* Adjust text color */
+                    font-family: "Montserrat", sans-serif;
+                }
+            `}&lt;/style>
+        &lt;/div>
+    );
+}
+
+export {Profile};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AddCategories">AddCategories</a></li><li><a href="global.html#CompleteProfile">CompleteProfile</a></li><li><a href="global.html#DeleteCategories">DeleteCategories</a></li><li><a href="global.html#EditProfile">EditProfile</a></li><li><a href="global.html#Feed">Feed</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Profile">Profile</a></li><li><a href="global.html#Questionnaire">Questionnaire</a></li><li><a href="global.html#Questionnaire2">Questionnaire2</a></li><li><a href="global.html#Settings">Settings</a></li><li><a href="global.html#Signup">Signup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed May 01 2024 11:21:21 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

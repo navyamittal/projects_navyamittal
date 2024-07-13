@@ -1,0 +1,53 @@
+.ce-chat-engine {
+    font-family: "Montserrat", sans-serif !important;
+}
+
+.ce-chat-title-text{
+  font-family: "Montserrat", sans-serif !important;
+}
+
+.ce-chat-subtitle-text{
+  font-family: "Montserrat", sans-serif !important;
+}
+
+.ce-my-message-bubble{
+  background-color: maroon !important;
+}
+
+.ce-message-timestamp{
+  color: black !important;
+  transition: none !important;
+}
+
+.ce-chat-engine{
+  background-color: black !important;
+}
+
+.ce-chat-title-text, .ce-chat-subtitle-text{
+  color: black !important;
+}
+
+/* .ce-chat-title{
+  visibility: hidden;
+  height: 0;
+  width: 0;
+} */
+
+.ce-feed-container-top{
+  visibility: hidden;
+  height: 0;
+  width: 0;
+}
+
+.chat-container{
+  height: 70vh !important;
+}
+
+.ce-feed-container-top{
+  height: 0px !important;
+}
+
+
+
+  
+  

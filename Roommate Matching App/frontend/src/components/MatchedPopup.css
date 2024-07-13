@@ -1,0 +1,92 @@
+
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(0,0,0,.5); /* Same color as the navbar */
+    width: 100%; /* adjust as needed */
+    height: 100vh; /* 80% of viewport height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+}
+
+.popup-content {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: bold;
+    
+}
+
+.popup-inner {
+    position: relative;
+    background-color: #500000; /* White background for inner content */
+    padding: 40px;
+    width: 100%;
+    height: 100%;
+    max-width: 1100px;
+    max-height: 600px;
+    border-radius: 30px;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.6); /* Shadow effect */
+    color: #ffffff; /* Text color matching navbar background */
+    text-align: center;
+    text-decoration: bold;
+    font-family: "Montserrat", sans-serif;
+    font-size: 20px;
+    justify-content: center;
+    align-items: center;
+}
+.closeButton {
+    position: absolute;
+    top: 18px;
+    right: 30px;
+    font-size: 18px;
+}
+
+body.popup-open {
+    overflow: hidden;
+}
+
+.popup-buttons {
+    margin-top: 400px;
+    margin-top: 100px;
+    display: flex;
+    justify-content: space-around;
+}
+.messageButton,
+.profileButton {
+    padding: 10px 20px;
+    background-color: #fff; /* Green color, adjust as needed */
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.messageButton:hover,
+.profileButton:hover {
+    background-color: #45a049; /* Darker green color on hover */
+}
+
+.typewriter-text {
+    display: block;
+    margin-top: 10px; /* Adjust as needed for spacing */
+}
+
+.type-writer-text {
+    font-size: 100px; /* Adjust the font size as needed */
+    color: rgb(0,0,0); /* Adjust text color */
+    font-family: "Montserrat", sans-serif;
+}
+
+.type-writer-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    margin-top: 50px;
+    font-size: 800px;
+    font-weight: bold;
+}

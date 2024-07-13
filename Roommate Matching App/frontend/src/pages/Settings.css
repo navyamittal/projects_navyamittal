@@ -1,0 +1,77 @@
+.card-body {
+    max-width: 750px;
+}
+
+.card-parent {
+    display: flex;
+    justify-content: center;
+
+}
+.settings-hr {
+    width: 100%;
+}
+
+.edit-card {
+    display: flex;
+}
+
+.edit-btn-div {
+    padding-top: 10px;
+    padding-right: 10px;
+}
+
+.edit-btn {
+    border-radius: 50%;
+    background-color: #500000;
+    height: 40px;
+    width: 40px;
+}
+
+.edit-btn:hover {
+    background-color: black;
+}
+
+.profile-view {
+    margin: 0 auto;
+}
+
+.settings-header {
+    text-align: center;
+    padding-top: 1.3rem;
+}
+
+.category-btn-div, .category-container {
+    display: flex;
+    justify-content: center;
+}
+
+.category-container {
+    padding-top: 1.2rem;
+}
+
+.categories-btn {
+    background-color: #500000;
+    border-radius: 25px;
+    color: white;
+    padding: 12px 30px;
+    margin: 2% 5%;
+}
+.categories-btn:hover {
+    background-color: black;
+    color: white;
+}
+
+.upload-image-button {
+    background-color: #500000;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 40px;
+}
+
+.upload-image-button .icon {
+    margin-right: 5px;
+}
